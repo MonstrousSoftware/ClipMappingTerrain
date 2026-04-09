@@ -43,10 +43,10 @@ public class Terrain implements Disposable {
         fillerMX3 = gridBuilder.makeGridModel(heightMap,  M, 3, GL20.GL_LINES, new Material(ColorAttribute.createDiffuse(Color.WHITE)));
 
         // top/bottom trim
-        horizontalTrim = gridBuilder.makeGridModel(heightMap,  4*M+1, 3, GL20.GL_LINES, new Material(ColorAttribute.createDiffuse(Color.WHITE)));
+        horizontalTrim = gridBuilder.makeGridModel(heightMap,  2*M+1, 2, GL20.GL_LINES, new Material(ColorAttribute.createDiffuse(Color.CYAN)));
 
         // left/right trim
-        verticalTrim = gridBuilder.makeGridModel(heightMap,  3, 4*M-1, GL20.GL_LINES, new Material(ColorAttribute.createDiffuse(Color.WHITE)));
+        verticalTrim = gridBuilder.makeGridModel(heightMap,  2, 2*M, GL20.GL_LINES, new Material(ColorAttribute.createDiffuse(Color.CYAN)));
 
 
         // get ground texture, use mip mapping and allow repeat wrapping
@@ -76,7 +76,7 @@ public class Terrain implements Disposable {
     public void makeTerrain() {
         instances.clear();
         float scale = 8f;
-        int numLevels = 10;
+        int numLevels = 4;
         for(int level = 0; level < numLevels; level++) {
             makeTerrainLevel(level, scale );
             scale *= 2f;
@@ -172,26 +172,29 @@ public class Terrain implements Disposable {
     private void addTrim(Array<ModelInstance> instances, float scale) {
         final int N = clipMapSize;
         final int M = (N + 1) / 4;
-        // offset for corner of ring
-        float xf = -(float) (N - 1) * scale / 2f;
-        float zf = -(float) (N - 1) * scale / 2f;
 
-        int xc = Math.round((focus.x + xf) / (2 * scale));
-        int zc = Math.round((focus.z + zf) / (2 * scale));
+        // offset for corner of ring
+        float xf = -(float) (N - 1) * scale/2f ;
+        float zf = -(float) (N - 1) * scale/2f ;
+
+        //scale *= 2f;
+
+        int xc = Math.round((focus.x + xf) / ( scale*2));
+        int zc = Math.round((focus.z + zf) / ( scale*2));
 
         // snap to multiple of 2 tiles
-        xf = 2 * scale * xc;
-        zf = 2 * scale * zc;
+        xf =  scale*2 * xc;
+        zf =  scale*2 * zc;
 
         if(zc % 2 == 0)
-            addSquare(instances, horizontalTrim, scale, xf, zf, (xc % 2 == 0 ? -2: 0), -2); // top trim
+            addSquare(instances, horizontalTrim, scale*2, xf, zf, (xc % 2 == 0 ? -1: 0), -1); // top trim
         else
-            addSquare(instances, horizontalTrim, scale, xf, zf, (xc % 2 == 0 ? -2 : 0), N-1); // bottom trim
+            addSquare(instances, horizontalTrim, scale*2, xf, zf, (xc % 2 == 0 ? -1 : 0), (N-1)/2); // bottom trim
 
         if(xc % 2 == 0)
-            addSquare(instances, verticalTrim, scale, xf, zf, -2, 0); // left trim
+            addSquare(instances, verticalTrim, scale*2, xf, zf, -1, 0); // left trim
         else
-            addSquare(instances, verticalTrim, scale, xf, zf, N-1, 0); // right trim
+            addSquare(instances, verticalTrim, scale*2, xf, zf, (N-1)/2, 0); // right trim
     }
 
     private void addSquare(Array<ModelInstance> instances, Model squareMxM, float scale, float xo, float zo, int x, int z){
