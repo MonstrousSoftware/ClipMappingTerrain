@@ -28,15 +28,14 @@ public class TerrainDemo extends ApplicationAdapter {
 	public CameraInputController camController;
 	public Environment environment;
 	public ModelBatch modelBatch;
-//	public Array<ModelInstance> instances = new Array<ModelInstance>();
-//	public Texture heightMapTexture;
-//	public Texture grassTexture;
 	public SpriteBatch batch;
 	public GUI gui;
 	public Cubemap cubemap;
 	public ModelInstance skybox;
     private ModelInstance xyz;
+    private ModelInstance character;
     private Terrain terrain;
+    private CharacterController controller;
 
 	CatmullRomSpline<Vector3> myCatmull;
 	ShapeRenderer shapeRenderer;
@@ -64,11 +63,15 @@ public class TerrainDemo extends ApplicationAdapter {
 		camController = new CameraInputController(cam);
         camController.scrollFactor = 10f;
 
+        regenerate();
+
+        controller = new CharacterController(character);
 
 		// input multiplexer to send inputs to GUI and to cam controller
 		InputMultiplexer im = new InputMultiplexer();
 		Gdx.input.setInputProcessor(im);
 		im.addProcessor(gui.stage); // set stage as first input processor
+        im.addProcessor(controller);
 		im.addProcessor(camController);
 
 		// define some lighting
@@ -110,7 +113,7 @@ public class TerrainDemo extends ApplicationAdapter {
 		}
 		//modelBatch = new ModelBatch();
 
-		regenerate();
+
 
 		// create ortho camera for overlay
 		orthoCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -140,8 +143,12 @@ public class TerrainDemo extends ApplicationAdapter {
 	public void render() {
 		// update camera positioning
 		//camController.update();
-		time += Gdx.graphics.getDeltaTime();
+        float delta = Gdx.graphics.getDeltaTime();
+		time += delta;
 		//updateCamera(time);
+
+        controller.update(delta);
+        terrain.update(character);
 
         // avoid the camera going under the terrain
 //		float heightBelowCam = terrain.getHeight(cam.position.x, cam.position.z);
@@ -150,8 +157,6 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		// clear screen
         ScreenUtils.clear(Color.BLACK, true);
-//		Gdx.gl.glClearColor(Color.BLACK); //0.9f, 0.9f, 0.9f, 1);
-//		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT | GL20.GL_DEPTH_BUFFER_BIT);
 
 		// render model instance
 		modelBatch.begin(cam);
@@ -162,6 +167,7 @@ public class TerrainDemo extends ApplicationAdapter {
         modelBatch.render(xyz);
         terrain.render(modelBatch, environment);
 		//modelBatch.render(instances, environment);
+        modelBatch.render(character, environment);
 		modelBatch.end();
 
         if(gui.showCameraPath)
@@ -185,6 +191,8 @@ public class TerrainDemo extends ApplicationAdapter {
 
 	public void regenerate() {
 		addSkybox();
+        addAxes();
+        addCharacter();
 		terrain.makeTerrain();
 
 	}
@@ -192,19 +200,33 @@ public class TerrainDemo extends ApplicationAdapter {
 
 	public void addSkybox() {
 
-		final float size = 150000f;
+        final float size = 150000f;
 
-		ModelBuilder modelBuilder = new ModelBuilder();
-		Model model = modelBuilder.createBox(size, size, size,
-				new Material(ColorAttribute.createDiffuse(Color.SKY),    // color signal shader provider for special shader
-						IntAttribute.createCullFace(GL20.GL_BACK)),     // don't cull back faces because we are viewing from inside the box
-				VertexAttributes.Usage.Position);
-		skybox = new ModelInstance(model);
+        ModelBuilder modelBuilder = new ModelBuilder();
+        Model model = modelBuilder.createBox(size, size, size,
+            new Material(ColorAttribute.createDiffuse(Color.SKY),    // color signal shader provider for special shader
+                IntAttribute.createCullFace(GL20.GL_BACK)),     // don't cull back faces because we are viewing from inside the box
+            VertexAttributes.Usage.Position);
+        skybox = new ModelInstance(model);
+    }
 
-        Model xyzModel = modelBuilder.createXYZCoordinates(500f, new Material(),
+    public void addAxes(){
+        ModelBuilder modelBuilder = new ModelBuilder();
+        Model xyzModel = modelBuilder.createXYZCoordinates(50f, new Material(),
             VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked);
         xyz = new ModelInstance(xyzModel, Vector3.Zero);
 	}
+
+    public void addCharacter() {
+
+        final float size = 10f;
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+        Model model = modelBuilder.createBox(size, size, size,
+            new Material(ColorAttribute.createDiffuse(Color.CYAN)),
+                       VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked|VertexAttributes.Usage.Normal);
+        character = new ModelInstance(model, 0, size*2, 0);
+    }
 
 
 

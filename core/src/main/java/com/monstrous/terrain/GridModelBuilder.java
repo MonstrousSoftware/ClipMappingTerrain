@@ -94,13 +94,6 @@ public class GridModelBuilder {
         return modelBuilder.end();
     }
 
-        // make a Model consisting of a square ring
-    // todo
-    public Model makeRingModel(HeightMap heightMap, int N, int primitive, Material material) {
-        final int M = (N+1)/4;
-
-        return makeGridModel(heightMap, N, M, primitive, material);
-    }
 
 
     private void addTriangle(MeshBuilder meshBuilder, final Vector3[] vertices, Vector3[] normals, int N, short v0, short v1, short v2) {
