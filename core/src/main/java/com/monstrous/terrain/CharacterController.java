@@ -1,8 +1,10 @@
 package com.monstrous.terrain;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
+import com.badlogic.gdx.math.Vector3;
 
 public class CharacterController extends InputAdapter {
 
@@ -16,6 +18,7 @@ public class CharacterController extends InputAdapter {
     @Override
     public boolean keyDown(int keycode) {
         keyDown = keycode;
+        Gdx.app.log("key down", ""+keycode);
         return super.keyDown(keycode);
     }
 
@@ -35,10 +38,16 @@ public class CharacterController extends InputAdapter {
                 modelInstance.transform.translate(dt, 0, 0);
                 break;
             case Input.Keys.W:
-                modelInstance.transform.translate(0, 0, dt);
+                modelInstance.transform.translate(0, dt, 0);
                 break;
             case Input.Keys.S:
-                modelInstance.transform.translate(0, 0, -dt);
+                modelInstance.transform.translate(0, -dt, 0);
+                break;
+            case Input.Keys.Q:
+                modelInstance.transform.rotate(Vector3.Z, dt);
+                break;
+            case Input.Keys.E:
+                modelInstance.transform.rotate(Vector3.Z, -dt);
                 break;
 
         }

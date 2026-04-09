@@ -25,6 +25,7 @@ public class GUI {
   //  public int octaves = 5;
   //  public float persistence = 0.45f;
     public float maxHeight = 600f;
+    private Label fpsLabel;
 
 
     public GUI ( TerrainDemo main ) {
@@ -108,6 +109,11 @@ public class GUI {
             }
         });
         controls.add(camPathCheckbox).row();
+
+        controls.add(new Label("FPS: ", skin));
+
+        fpsLabel = new Label("0", skin);
+        controls.add(fpsLabel).row();
 
         controls.pack();
         stage.addActor(controls);
@@ -245,6 +251,7 @@ public class GUI {
     }
 
     public void render( float delta ) {
+        fpsLabel.setText(Gdx.graphics.getFramesPerSecond());
         stage.act(delta);
         stage.draw();
     }

@@ -49,7 +49,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		gui = new GUI(this);
 
-        terrain = new Terrain(gui, 15);
+        terrain = new Terrain(gui, 63);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -111,9 +111,6 @@ public class TerrainDemo extends ApplicationAdapter {
 				}
 			});
 		}
-		//modelBatch = new ModelBatch();
-
-
 
 		// create ortho camera for overlay
 		orthoCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -219,13 +216,17 @@ public class TerrainDemo extends ApplicationAdapter {
 
     public void addCharacter() {
 
-        final float size = 10f;
+        final float size = 20f;
 
         ModelBuilder modelBuilder = new ModelBuilder();
-        Model model = modelBuilder.createBox(size, size, size,
+        Model model = modelBuilder.createCone(size, size, size, 4,
             new Material(ColorAttribute.createDiffuse(Color.CYAN)),
-                       VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked|VertexAttributes.Usage.Normal);
+            VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked|VertexAttributes.Usage.Normal);
+//        Model model = modelBuilder.createBox(size, size, size,
+//            new Material(ColorAttribute.createDiffuse(Color.CYAN)),
+//                       VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked|VertexAttributes.Usage.Normal);
         character = new ModelInstance(model, 0, size*2, 0);
+        character.transform.rotate(Vector3.X, 90);
     }
 
 
