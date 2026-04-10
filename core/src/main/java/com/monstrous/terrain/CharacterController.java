@@ -10,15 +10,17 @@ public class CharacterController extends InputAdapter {
 
     final ModelInstance modelInstance;
     private int keyDown;
+    public float angle;
 
     public CharacterController(ModelInstance modelInstance) {
         this.modelInstance = modelInstance;
+        angle = 0;
     }
 
     @Override
     public boolean keyDown(int keycode) {
         keyDown = keycode;
-        Gdx.app.log("key down", ""+keycode);
+        //Gdx.app.log("key down", ""+keycode);
         return super.keyDown(keycode);
     }
 
@@ -45,9 +47,11 @@ public class CharacterController extends InputAdapter {
                 break;
             case Input.Keys.Q:
                 modelInstance.transform.rotate(Vector3.Z, dt);
+                angle += dt;
                 break;
             case Input.Keys.E:
                 modelInstance.transform.rotate(Vector3.Z, -dt);
+                angle += -dt;
                 break;
 
         }

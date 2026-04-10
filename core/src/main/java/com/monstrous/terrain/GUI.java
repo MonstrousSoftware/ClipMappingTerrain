@@ -242,7 +242,7 @@ public class GUI {
 
 
     private void refresh() {
-        main.regenerate();
+        //main.regenerate();
     }
 
     public void resize (int width, int height) {

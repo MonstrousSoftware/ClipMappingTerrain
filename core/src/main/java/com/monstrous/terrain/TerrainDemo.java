@@ -17,6 +17,7 @@ import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.CatmullRomSpline;
+import com.badlogic.gdx.math.Quaternion;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
@@ -36,6 +37,7 @@ public class TerrainDemo extends ApplicationAdapter {
     private ModelInstance character;
     private Terrain terrain;
     private CharacterController controller;
+    public PerspectiveCamera characterCam;
 
 	CatmullRomSpline<Vector3> myCatmull;
 	ShapeRenderer shapeRenderer;
@@ -49,7 +51,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		gui = new GUI(this);
 
-        terrain = new Terrain(gui, 63);
+        terrain = new Terrain(gui, 63, 8, 8f);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -59,11 +61,20 @@ public class TerrainDemo extends ApplicationAdapter {
 		cam.near = 0.1f;
 		cam.update();
 
+        characterCam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        characterCam.position.set(0, 10, 0);
+        characterCam.lookAt(0, 0, -100);
+        characterCam.far = 20000f;
+        characterCam.near = 0.1f;
+        characterCam.update(true);
+
 		// add camera controller
 		camController = new CameraInputController(cam);
-        camController.scrollFactor = 10f;
+        camController.scrollFactor = -10f;
 
-        regenerate();
+        addSkybox();
+        addAxes();
+        addCharacter();
 
         controller = new CharacterController(character);
 
@@ -145,6 +156,11 @@ public class TerrainDemo extends ApplicationAdapter {
 		//updateCamera(time);
 
         controller.update(delta);
+        character.transform.getTranslation(characterCam.position);
+        characterCam.direction.set(0,0,-1);
+        characterCam.direction.rotate(Vector3.Y, -controller.angle);
+
+        characterCam.update(true);
         terrain.update(character);
 
         // avoid the camera going under the terrain
@@ -162,7 +178,7 @@ public class TerrainDemo extends ApplicationAdapter {
 			Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
 		}
         modelBatch.render(xyz);
-        terrain.render(modelBatch, environment);
+        terrain.render(characterCam, modelBatch, environment);
 		//modelBatch.render(instances, environment);
         modelBatch.render(character, environment);
 		modelBatch.end();
@@ -184,14 +200,6 @@ public class TerrainDemo extends ApplicationAdapter {
 		batch.dispose();
 		//heightMapTexture.dispose();
         terrain.dispose();
-	}
-
-	public void regenerate() {
-		addSkybox();
-        addAxes();
-        addCharacter();
-		terrain.makeTerrain();
-
 	}
 
 
