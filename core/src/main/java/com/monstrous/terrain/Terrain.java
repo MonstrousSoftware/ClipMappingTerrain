@@ -52,7 +52,7 @@ public class Terrain implements Disposable {
         grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
 
         int primitive = GL20.GL_LINES;
-        Material mat = new Material(ColorAttribute.createDiffuse(Color.WHITE));
+        Material mat = new Material(ColorAttribute.createDiffuse(Color.SKY));
 
 
 //        primitive = GL20.GL_TRIANGLES;

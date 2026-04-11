@@ -101,11 +101,11 @@ public class TerrainDemo extends ApplicationAdapter {
 		environment.set(new CubemapAttribute(CubemapAttribute.EnvironmentMap, cubemap));
 
 
-		if (false) {
+		if (true) {
 			modelBatch = new ModelBatch(new DefaultShaderProvider() {
 				@Override
 				protected Shader createShader(final Renderable renderable) {
-					Shader sh = new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("uv.vertex.glsl").readString(), Gdx.files.internal("uv.fragment.glsl").readString()));
+					Shader sh = new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
 					return sh;
 				}
 			});
@@ -116,8 +116,12 @@ public class TerrainDemo extends ApplicationAdapter {
 					ColorAttribute colAttr = (ColorAttribute) renderable.material.get(ColorAttribute.Diffuse);
 					if (colAttr != null && colAttr.color.equals(Color.SKY))    // special colour
 					{
-						return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("skybox.vertex.glsl").readString(), Gdx.files.internal("skybox.fragment.glsl").readString()));
+						return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/skybox.vertex.glsl").readString(), Gdx.files.internal("shaders/skybox.fragment.glsl").readString()));
 					}
+//                    if (colAttr != null && colAttr.color.equals(Color.FIREBRICK))    // special colour
+//                    {
+//                        return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
+//                    }
 					return new DefaultShader(renderable);
 				}
 			});
