@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
@@ -84,8 +85,6 @@ public class Terrain implements Disposable {
     public void update(ModelInstance focalInstance){
         focalInstance.transform.getTranslation(focus);
         buildTerrain();
-        // todo frustum culling
-
     }
 
     public void render(Camera camera, ModelBatch modelBatch, Environment environment) {
@@ -100,7 +99,7 @@ public class Terrain implements Disposable {
                 count++;
             }
         }
-        Gdx.app.log("after culling", ""+count);
+        //Gdx.app.log("after culling", ""+count);
     }
 
     public Texture getHeightMapTexture(){
@@ -145,7 +144,7 @@ public class Terrain implements Disposable {
         Model model = gridBuilder.makeGridModel(heightMap,  clipMapSize, GL20.GL_TRIANGLES, new Material(TextureAttribute.createDiffuse(grassTexture)));
         ModelInstance instance = new ModelInstance(model, new Vector3(-offset, 0, -offset));
         instance.transform.scale(scale, 1f, scale);
-        elements.add(new TerrainElement(instance));
+        //elements.add(new TerrainElement(instance));
     }
 
     private void addDebugSquare(Array<TerrainElement> elements, float scale){
@@ -156,7 +155,7 @@ public class Terrain implements Disposable {
         xf = 2 * scale * Math.round((focus.x+xf) / (2*scale));
         zf = 2 * scale * Math.round((focus.z+zf) / (2*scale));
 
-        addSquare(elements, gridModel, scale, xf, zf,  0, 0);
+        addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
     }
 
 
@@ -174,35 +173,36 @@ public class Terrain implements Disposable {
 
 
         // add 12 blocks of size MxM
-        addSquare(elements, squareMxM, scale, xf, zf,  0, 0);
-        addSquare(elements, squareMxM, scale, xf, zf, M-1, 0);
-        addSquare(elements, squareMxM, scale, xf, zf, 0, M-1);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf,  0, 0);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, M-1, 0);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, 0, M-1);
 
-        addSquare(elements, squareMxM, scale, xf, zf, N-M, 0);
-        addSquare(elements, squareMxM, scale, xf, zf, N-2*M+1, 0);
-        addSquare(elements, squareMxM, scale, xf, zf, N-M, M-1);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-M, 0);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-2*M+1, 0);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-M, M-1);
 
-        addSquare(elements, squareMxM, scale, xf, zf, 0, N-M);
-        addSquare(elements, squareMxM, scale, xf, zf, M-1, N-M);
-        addSquare(elements, squareMxM, scale, xf, zf, 0, N-2*M+1);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, 0, N-M);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, M-1, N-M);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, 0, N-2*M+1);
 
-        addSquare(elements, squareMxM, scale, xf, zf, N-M, N-M);
-        addSquare(elements, squareMxM, scale, xf, zf, N-2*M+1, N-M);
-        addSquare(elements, squareMxM, scale, xf, zf, N-M, N-2*M+1);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-M, N-M);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-2*M+1, N-M);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-M, N-2*M+1);
 
         // vertical filler blocks to close the ring
-        addSquare(elements, filler3XM, scale, xf, zf, 2*(M-1), 0);
-        addSquare(elements, filler3XM, scale, xf, zf, 2*(M-1), N-M);
+        addSquare(elements, filler3XM, scale,3, M,  xf, zf, 2*(M-1), 0);
+        addSquare(elements, filler3XM, scale, 3, M, xf, zf, 2*(M-1), N-M);
 
         // horizontal filler blocks to close the ring
-        addSquare(elements, fillerMX3, scale, xf, zf, 0, 2*(M-1));
-        addSquare(elements, fillerMX3, scale, xf, zf, N-M, 2*(M-1));
+        addSquare(elements, fillerMX3, scale, M, 3, xf, zf, 0, 2*(M-1));
+        addSquare(elements, fillerMX3, scale, M, 3, xf, zf, N-M, 2*(M-1));
     }
 
     /** Add L shaped trim around the level to fill in the gap with the next larger level.
      * The trim is same resolution as the surrounding level, i.e. half the resolution of the enclosed level. */
     private void addTrim(Array<TerrainElement> elements, float scale) {
         final int N = clipMapSize;
+        final int M = (N+1)/4;
 
         // offset for corner of ring
         float xf = -(float) (N - 1) * scale/2f ;
@@ -216,21 +216,33 @@ public class Terrain implements Disposable {
         zf =  scale*2 * zc;
 
         if(zc % 2 == 0)
-            addSquare(elements, horizontalTrim, scale*2, xf, zf, (xc % 2 == 0 ? -1: 0), -1); // top trim
+            addSquare(elements, horizontalTrim, scale*2, 2*M+1, 3, xf, zf, (xc % 2 == 0 ? -1: 0), -1); // top trim
         else
-            addSquare(elements, horizontalTrim, scale*2, xf, zf, (xc % 2 == 0 ? -1 : 0), (N-1)/2); // bottom trim
+            addSquare(elements, horizontalTrim, scale*2, 2*M+1, 2, xf, zf, (xc % 2 == 0 ? -1 : 0), (N-1)/2); // bottom trim
 
         if(xc % 2 == 0)
-            addSquare(elements, verticalTrim, scale*2, xf, zf, -1, 0); // left trim
+            addSquare(elements, verticalTrim, scale*2, 2, 2*M, xf, zf, -1, 0); // left trim
         else
-            addSquare(elements, verticalTrim, scale*2, xf, zf, (N-1)/2, 0); // right trim
+            addSquare(elements, verticalTrim, scale*2, 2, 2*M, xf, zf, (N-1)/2, 0); // right trim
     }
 
-    private void addSquare(Array<TerrainElement> elements, Model squareMxM, float scale, float xo, float zo, int x, int z){
-        ModelInstance instance = new ModelInstance(squareMxM);
+    private final Vector3 min = new Vector3();
+    private final Vector3 max = new Vector3();
+
+    /** add a terrain element
+     * xo,zo: position of level (bottom left corner)
+     * x,z: position of this element (in tiles)
+     * */
+    private void addSquare(Array<TerrainElement> elements, Model model, float scale, int w, int h, float xo, float zo, int x, int z){
+        ModelInstance instance = new ModelInstance(model);
         instance.transform.translate(xo + x * scale, 0, zo + z*scale);
         instance.transform.scale(scale, 1f, scale);
-        elements.add(new TerrainElement(instance));
+        BoundingBox bbox = new BoundingBox();
+        min.set(xo + x * scale, -100f, zo + z*scale);
+        max.set(min);
+        max.add(scale * (w-1), 100f, scale*(h-1));
+        bbox.set(min, max);
+        elements.add(new TerrainElement(instance, bbox));
     }
 
     @Override
