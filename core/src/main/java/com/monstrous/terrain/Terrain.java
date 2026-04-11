@@ -26,6 +26,7 @@ public class Terrain implements Disposable {
     private final Model horizontalTrim;
     private final Model verticalTrim;
     private Vector3 focus;
+    public boolean frustumCulling = false;
 
     /** Construct terrain.
      *
@@ -39,7 +40,7 @@ public class Terrain implements Disposable {
         this.clipMapSize = clipMapSize;
         this.numLevels = numLevels;
         this.tileSize = tileSize;
-        heightMap = new HeightMap(clipMapSize+1);
+        heightMap = new HeightMap(256); //clipMapSize+1);
         gridBuilder = new GridModelBuilder();
         final int N = clipMapSize;
         final int M = (N+1)/4;
@@ -48,11 +49,16 @@ public class Terrain implements Disposable {
 
         // get ground texture, use mip mapping and allow repeat wrapping
         grassTexture = new Texture(Gdx.files.internal("Grass.png"), true);
-        grassTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        grassTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
         grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
 
         int primitive = GL20.GL_LINES;
-        Material mat = new Material(ColorAttribute.createDiffuse(Color.SKY));
+        //Texture texture = heightMap.getHeightMapTexture();
+        Texture texture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Height Map PNG.png"), true);
+
+        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
+        Material mat = new Material(ColorAttribute.createDiffuse(Color.FIREBRICK), TextureAttribute.createDiffuse(texture));
 
 
 //        primitive = GL20.GL_TRIANGLES;
@@ -89,15 +95,18 @@ public class Terrain implements Disposable {
 
     public void render(Camera camera, ModelBatch modelBatch, Environment environment) {
 
-//        for (TerrainElement element : elements)
-//                modelBatch.render(element.modelInstance, environment);
 
-        int count = 0;
-        for (TerrainElement element : elements) {
-            if (camera.frustum.boundsInFrustum(element.bbox)) {
-                modelBatch.render(element.modelInstance, environment);
-                count++;
+        if(frustumCulling) {
+            int count = 0;
+            for (TerrainElement element : elements) {
+                if (camera.frustum.boundsInFrustum(element.bbox)) {
+                    modelBatch.render(element.modelInstance, environment);
+                    count++;
+                }
             }
+        } else {
+            for (TerrainElement element : elements)
+                modelBatch.render(element.modelInstance, environment);
         }
         //Gdx.app.log("after culling", ""+count);
     }

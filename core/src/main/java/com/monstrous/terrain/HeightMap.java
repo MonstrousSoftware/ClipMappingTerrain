@@ -26,6 +26,8 @@ public class HeightMap implements Disposable {
             // copy to a texture (for debug)
             Pixmap pixmap = noise.generatePixmap(heightMap, mapSize);
             heightMapTexture = new Texture(pixmap);
+            heightMapTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
+            heightMapTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         }
         return heightMapTexture;
     }
