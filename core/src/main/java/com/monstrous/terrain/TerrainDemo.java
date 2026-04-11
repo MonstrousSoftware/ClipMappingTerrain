@@ -29,6 +29,7 @@ public class TerrainDemo extends ApplicationAdapter {
 	public CameraInputController camController;
 	public Environment environment;
 	public ModelBatch modelBatch;
+    public ModelBatch terrainBatch;
 	public SpriteBatch batch;
 	public GUI gui;
 	public Cubemap cubemap;
@@ -101,31 +102,39 @@ public class TerrainDemo extends ApplicationAdapter {
 		environment.set(new CubemapAttribute(CubemapAttribute.EnvironmentMap, cubemap));
 
 
-		if (true) {
-			modelBatch = new ModelBatch(new DefaultShaderProvider() {
-				@Override
-				protected Shader createShader(final Renderable renderable) {
-					Shader sh = new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
-					return sh;
-				}
-			});
-		} else {
-			modelBatch = new ModelBatch(new DefaultShaderProvider() {
-				@Override
-				protected Shader createShader(final Renderable renderable) {
-					ColorAttribute colAttr = (ColorAttribute) renderable.material.get(ColorAttribute.Diffuse);
-					if (colAttr != null && colAttr.color.equals(Color.SKY))    // special colour
-					{
-						return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/skybox.vertex.glsl").readString(), Gdx.files.internal("shaders/skybox.fragment.glsl").readString()));
-					}
+        modelBatch = new ModelBatch();
+        terrainBatch = new ModelBatch(new DefaultShaderProvider() {
+            @Override
+            protected Shader createShader(final Renderable renderable) {
+                return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
+            }
+        });
+
+//		if (true) {
+//			modelBatch = new ModelBatch(new DefaultShaderProvider() {
+//				@Override
+//				protected Shader createShader(final Renderable renderable) {
+//					Shader sh = new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
+//					return sh;
+//				}
+//			});
+//		} else {
+//			modelBatch = new ModelBatch(new DefaultShaderProvider() {
+//				@Override
+//				protected Shader createShader(final Renderable renderable) {
+//					ColorAttribute colAttr = (ColorAttribute) renderable.material.get(ColorAttribute.Diffuse);
+//					if (colAttr != null && colAttr.color.equals(Color.SKY))    // special colour
+//					{
+//						return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/skybox.vertex.glsl").readString(), Gdx.files.internal("shaders/skybox.fragment.glsl").readString()));
+//					}
 //                    if (colAttr != null && colAttr.color.equals(Color.FIREBRICK))    // special colour
 //                    {
 //                        return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
 //                    }
-					return new DefaultShader(renderable);
-				}
-			});
-		}
+//					return new DefaultShader(renderable);
+//				}
+//			});
+//		}
 
 		// create ortho camera for overlay
 		orthoCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -182,10 +191,12 @@ public class TerrainDemo extends ApplicationAdapter {
 			Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
 		}
         modelBatch.render(xyz);
-        terrain.render(characterCam, modelBatch, environment);
-		//modelBatch.render(instances, environment);
         modelBatch.render(character, environment);
-		modelBatch.end();
+        modelBatch.end();
+
+        terrainBatch.begin(cam);
+        terrain.render(characterCam, terrainBatch, environment);
+        terrainBatch.end();
 
         if(gui.showCameraPath)
 		    renderPath();
