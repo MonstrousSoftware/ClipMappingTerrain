@@ -53,7 +53,7 @@ public class Terrain implements Disposable {
         grassTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
         grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
 
-        int primitive = GL20.GL_LINES; //TRIANGLES;
+        int primitive = GL20.GL_TRIANGLES;
 
         Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
         diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);

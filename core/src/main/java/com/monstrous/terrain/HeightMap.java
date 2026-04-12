@@ -51,12 +51,12 @@ public class HeightMap implements Disposable {
     }
 
     public float get(float wx, float wz){
-        int x = (int) wx;
-        int z = (int) wz;
+        int x = Math.round(wx * mapSize);
+        int z = Math.round(wz*mapSize);
         int pixel = pixmap.getPixel(x, z);
         int red = (pixel >> 24) & 0xFF;
         float h = 64000f * ((red/255.0f)-0.5f);
-        return 0; //heightMap[z][x];
+        return h; //heightMap[z][x];
     }
 
     @Override

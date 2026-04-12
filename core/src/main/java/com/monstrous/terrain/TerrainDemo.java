@@ -160,6 +160,8 @@ public class TerrainDemo extends ApplicationAdapter {
 		gui.resize(width, height);
 	}
 
+    private Vector3 pos = new Vector3();
+
 	@Override
 	public void render() {
 		// update camera positioning
@@ -169,6 +171,14 @@ public class TerrainDemo extends ApplicationAdapter {
 		//updateCamera(time);
 
         controller.update(delta);
+        character.transform.getTranslation(pos);
+        pos.scl(1f/(8f*16128.0f));
+        pos.add(0.5f, 0.0f, 0.5f);
+        float h = terrain.heightMap.get(pos.x, pos.z);
+        character.transform.getTranslation(pos);
+        pos.y = h + 350f;
+        character.transform.setTranslation(pos);
+        Gdx.app.log("position: ", pos.toString());
         character.transform.getTranslation(characterCam.position);
         characterCam.direction.set(0,0,-1);
         characterCam.direction.rotate(Vector3.Y, controller.angle);
@@ -176,7 +186,7 @@ public class TerrainDemo extends ApplicationAdapter {
         characterCam.update(true);
         terrain.update(character);
 
-        float h = terrain.heightMap.get(characterCam.position.x, characterCam.position.z);
+
         //character.transform.trn(characterCam.position.x, h, characterCam.position.z);
 
         // avoid the camera going under the terrain

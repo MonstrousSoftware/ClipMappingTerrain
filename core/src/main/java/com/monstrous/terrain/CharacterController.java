@@ -6,12 +6,15 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class CharacterController extends InputAdapter {
     final static float SPEED = 2500f;
     final static float TURN_SPEED = 180f; // degrees/s
 
     final ModelInstance modelInstance;
-    private int keyDown;
+    private final Map<Integer, Integer> keys = new HashMap<>();
     public float angle;
 
     public CharacterController(ModelInstance modelInstance) {
@@ -21,47 +24,37 @@ public class CharacterController extends InputAdapter {
 
     @Override
     public boolean keyDown(int keycode) {
-        keyDown = keycode;
-        //Gdx.app.log("key down", ""+keycode);
+        keys.put(keycode, 1);
         return super.keyDown(keycode);
     }
 
     @Override
     public boolean keyUp(int keycode) {
-        keyDown = -1;
+        keys.remove(keycode);
         return super.keyUp(keycode);
     }
 
     public void update(float dt){
 
-        switch(keyDown){
-            case Input.Keys.A:
-                modelInstance.transform.translate(-dt*SPEED, 0, 0);
-                break;
-            case Input.Keys.D:
+        if(keys.get(Input.Keys.A) != null)
+            modelInstance.transform.translate(-dt*SPEED, 0, 0);
+        if(keys.get(Input.Keys.D) != null)
                 modelInstance.transform.translate(dt*SPEED, 0, 0);
-                break;
-            case Input.Keys.W:
+        if(keys.get(Input.Keys.S) != null)
                 modelInstance.transform.translate(0, dt*SPEED, 0);
-                break;
-            case Input.Keys.S:
+        if(keys.get(Input.Keys.W) != null)
                 modelInstance.transform.translate(0, -dt*SPEED, 0);
-                break;
-            case Input.Keys.R:
+        if(keys.get(Input.Keys.R) != null)
                 modelInstance.transform.translate(0, 0, dt*SPEED);
-                break;
-            case Input.Keys.F:
+        if(keys.get(Input.Keys.F) != null)
                 modelInstance.transform.translate(0, 0,-dt*SPEED);
-                break;
-            case Input.Keys.Q:
-                modelInstance.transform.rotate(Vector3.Z, dt*TURN_SPEED);
-                angle += dt*TURN_SPEED;
-                break;
-            case Input.Keys.E:
-                modelInstance.transform.rotate(Vector3.Z, -dt*TURN_SPEED);
-                angle += -dt*TURN_SPEED;
-                break;
-
+        if(keys.get(Input.Keys.Q) != null) {
+            modelInstance.transform.rotate(Vector3.Z, dt * TURN_SPEED);
+            angle += dt * TURN_SPEED;
+        }
+        if(keys.get(Input.Keys.E) != null) {
+            modelInstance.transform.rotate(Vector3.Z, -dt * TURN_SPEED);
+            angle += -dt * TURN_SPEED;
         }
     }
 
