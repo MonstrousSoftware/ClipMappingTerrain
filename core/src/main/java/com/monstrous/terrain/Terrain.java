@@ -40,7 +40,8 @@ public class Terrain implements Disposable {
         this.clipMapSize = clipMapSize;
         this.numLevels = numLevels;
         this.tileSize = tileSize;
-        heightMap = new HeightMap(256); //clipMapSize+1);
+        //heightMap = new HeightMap(256); //clipMapSize+1);
+        heightMap = new HeightMap(Gdx.files.internal("terrain/Rugged Terrain Height Map PNG.png"));
         gridBuilder = new GridModelBuilder();
         final int N = clipMapSize;
         final int M = (N+1)/4;
@@ -52,13 +53,17 @@ public class Terrain implements Disposable {
         grassTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
         grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
 
-        int primitive = GL20.GL_LINES;
-        //Texture texture = heightMap.getHeightMapTexture();
-        Texture texture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Height Map PNG.png"), true);
+        int primitive = GL20.GL_LINES; //TRIANGLES;
 
-        texture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-        texture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-        Material mat = new Material(ColorAttribute.createDiffuse(Color.FIREBRICK), TextureAttribute.createDiffuse(texture));
+        Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
+        diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
+        diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+
+        Material mat = new Material(
+            ColorAttribute.createDiffuse(Color.FIREBRICK),
+            TextureAttribute.createDiffuse(diffuseTexture),
+            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())
+                );
 
 
 //        primitive = GL20.GL_TRIANGLES;

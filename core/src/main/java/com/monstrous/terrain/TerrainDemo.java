@@ -65,7 +65,7 @@ public class TerrainDemo extends ApplicationAdapter {
         characterCam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         characterCam.position.set(0, 10, 0);
         characterCam.lookAt(0, 0, -100);
-        characterCam.far = 20000f;
+        characterCam.far = 200000f;
         characterCam.near = 0.1f;
         characterCam.update(true);
 
@@ -171,10 +171,13 @@ public class TerrainDemo extends ApplicationAdapter {
         controller.update(delta);
         character.transform.getTranslation(characterCam.position);
         characterCam.direction.set(0,0,-1);
-        characterCam.direction.rotate(Vector3.Y, -controller.angle);
+        characterCam.direction.rotate(Vector3.Y, controller.angle);
 
         characterCam.update(true);
         terrain.update(character);
+
+        float h = terrain.heightMap.get(characterCam.position.x, characterCam.position.z);
+        //character.transform.trn(characterCam.position.x, h, characterCam.position.z);
 
         // avoid the camera going under the terrain
 //		float heightBelowCam = terrain.getHeight(cam.position.x, cam.position.z);
@@ -184,7 +187,6 @@ public class TerrainDemo extends ApplicationAdapter {
 		// clear screen
         ScreenUtils.clear(Color.BLACK, true);
 
-		// render model instance
 		modelBatch.begin(cam);
 		if (gui.showSkybox) {
 			modelBatch.render(skybox, environment);
@@ -207,6 +209,8 @@ public class TerrainDemo extends ApplicationAdapter {
 			batch.end();
 		}
 		gui.render(Gdx.graphics.getDeltaTime());
+
+
 	}
 
 	@Override

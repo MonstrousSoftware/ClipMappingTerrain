@@ -7,6 +7,8 @@ import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.Vector3;
 
 public class CharacterController extends InputAdapter {
+    final static float SPEED = 2500f;
+    final static float TURN_SPEED = 180f; // degrees/s
 
     final ModelInstance modelInstance;
     private int keyDown;
@@ -31,27 +33,33 @@ public class CharacterController extends InputAdapter {
     }
 
     public void update(float dt){
-        dt *= 100f;
+
         switch(keyDown){
             case Input.Keys.A:
-                modelInstance.transform.translate(-dt, 0, 0);
+                modelInstance.transform.translate(-dt*SPEED, 0, 0);
                 break;
             case Input.Keys.D:
-                modelInstance.transform.translate(dt, 0, 0);
+                modelInstance.transform.translate(dt*SPEED, 0, 0);
                 break;
             case Input.Keys.W:
-                modelInstance.transform.translate(0, dt, 0);
+                modelInstance.transform.translate(0, dt*SPEED, 0);
                 break;
             case Input.Keys.S:
-                modelInstance.transform.translate(0, -dt, 0);
+                modelInstance.transform.translate(0, -dt*SPEED, 0);
+                break;
+            case Input.Keys.R:
+                modelInstance.transform.translate(0, 0, dt*SPEED);
+                break;
+            case Input.Keys.F:
+                modelInstance.transform.translate(0, 0,-dt*SPEED);
                 break;
             case Input.Keys.Q:
-                modelInstance.transform.rotate(Vector3.Z, dt);
-                angle += dt;
+                modelInstance.transform.rotate(Vector3.Z, dt*TURN_SPEED);
+                angle += dt*TURN_SPEED;
                 break;
             case Input.Keys.E:
-                modelInstance.transform.rotate(Vector3.Z, -dt);
-                angle += -dt;
+                modelInstance.transform.rotate(Vector3.Z, -dt*TURN_SPEED);
+                angle += -dt*TURN_SPEED;
                 break;
 
         }

@@ -10,5 +10,5 @@ varying vec2 v_UV;
 void main() {
     vec4 diffuse = texture2D(u_diffuseTexture, v_UV);
 
-	gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+	gl_FragColor = diffuse; //vec4(0.0, 1.0, 0.0, 1.0);
 }

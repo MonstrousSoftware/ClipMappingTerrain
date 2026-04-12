@@ -6,7 +6,8 @@
 attribute vec4 a_position;
 attribute vec3 a_normal;
 
-uniform sampler2D u_diffuseTexture;
+//uniform sampler2D u_diffuseTexture;
+uniform sampler2D u_emissiveTexture;
 uniform mat4 u_worldTrans;
 uniform mat4 u_projViewTrans;
 
@@ -19,12 +20,13 @@ void main() {
 	v_normal =  vec4(a_normal, 1);
 	vec4 worldPos = u_worldTrans * a_position;
 
-    v_UV = (worldPos.xz / 25600.0)-vec2(0.5);
-    vec4 diffuse = texture2D(u_diffuseTexture, v_UV);
+    v_UV = (worldPos.xz / (8*16128.0))-vec2(0.5);
+    vec4 heightSample = texture2D(u_emissiveTexture, v_UV);
 
 
-	worldPos.y = 8192.0 * (diffuse.r - 0.5);
-	//worldPos.y += 8.0 * sin(worldPos.x/16.0) * cos(worldPos.z/17.0);
+	worldPos.y = 64000.0 * (heightSample.r - 0.5);
+	//worldPos.y = 1000.0 * (heightSample.r - 0.5);
+	//worldPos.y = 8.0 * sin(worldPos.x/16.0) * cos(worldPos.z/17.0);
 
    	gl_Position = u_projViewTrans * worldPos;
 }
