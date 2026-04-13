@@ -25,6 +25,7 @@ public class Terrain implements Disposable {
     private final Model filler3XM;
     private final Model horizontalTrim;
     private final Model verticalTrim;
+    private final Model fringe;
     private Vector3 focus;
     public boolean frustumCulling = false;
 
@@ -62,14 +63,11 @@ public class Terrain implements Disposable {
         diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         Material mat = new Material(
-            ColorAttribute.createDiffuse(Color.FIREBRICK),
+            ColorAttribute.createDiffuse(Color.GREEN),
             TextureAttribute.createDiffuse(diffuseTexture),
             TextureAttribute.createEmissive(heightMap.getHeightMapTexture())
                 );
 
-
-//        primitive = GL20.GL_TRIANGLES;
-//        mat = new Material(TextureAttribute.createDiffuse(grassTexture));
 
         // NxN center grid
         gridModel = gridBuilder.makeGridModel( N, primitive, mat);
@@ -85,6 +83,9 @@ public class Terrain implements Disposable {
 
         // left/right trim
         verticalTrim = gridBuilder.makeGridModel( 2, 2*M, primitive, mat);
+
+        // degenerate triangles to close gaps on border with next level
+        fringe = gridBuilder.makeTriangleFringe(N, N, primitive, mat);
 
         focus = new Vector3();
 
@@ -171,7 +172,9 @@ public class Terrain implements Disposable {
         xf = 2 * scale * Math.round((focus.x+xf) / (2*scale));
         zf = 2 * scale * Math.round((focus.z+zf) / (2*scale));
 
-        addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
+   //     addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
+
+        addSquare(elements, fringe, scale, N, N, xf, zf,  0, 0);
     }
 
 
@@ -212,6 +215,8 @@ public class Terrain implements Disposable {
         // horizontal filler blocks to close the ring
         addSquare(elements, fillerMX3, scale, M, 3, xf, zf, 0, 2*(M-1));
         addSquare(elements, fillerMX3, scale, M, 3, xf, zf, N-M, 2*(M-1));
+
+        addSquare(elements, fringe, scale, N, N, xf, zf,  0, 0);
     }
 
     /** Add L shaped trim around the level to fill in the gap with the next larger level.
@@ -241,6 +246,8 @@ public class Terrain implements Disposable {
         else
             addSquare(elements, verticalTrim, scale*2, 2, 2*M, xf, zf, (N-1)/2, 0); // right trim
     }
+
+
 
     private final Vector3 min = new Vector3();
     private final Vector3 max = new Vector3();

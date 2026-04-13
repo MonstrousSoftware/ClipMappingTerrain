@@ -52,7 +52,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		gui = new GUI(this);
 
-        terrain = new Terrain(gui, 63, 3, 8f);
+        terrain = new Terrain(gui, 15, 3, 8f);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -169,7 +169,7 @@ public class TerrainDemo extends ApplicationAdapter {
 //			cam.position.y = heightBelowCam + 10f;
 
 		// clear screen
-        ScreenUtils.clear(Color.DARK_GRAY, true);
+        ScreenUtils.clear(Color.GRAY, true);
 
 		modelBatch.begin(cam);
 		if (gui.showSkybox) {

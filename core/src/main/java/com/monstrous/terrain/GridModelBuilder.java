@@ -54,8 +54,8 @@ public class GridModelBuilder {
                 short v0 = (short) ((y - 1) * N);    // vertex number at top left of this row
                 for (short t = 0; t < N-1; t++) {
                     // counter-clockwise winding
-                    addTriangle(meshBuilder, vertices,  N, v0, (short) (v0 + N), (short) (v0 + 1));
-                    addTriangle(meshBuilder, vertices,  N, (short) (v0 + 1), (short) (v0 + N), (short) (v0 + N + 1));
+                    addTriangle(meshBuilder, vertices,  v0, (short) (v0 + N), (short) (v0 + 1));
+                    addTriangle(meshBuilder, vertices,  (short) (v0 + 1), (short) (v0 + N), (short) (v0 + N + 1));
                     v0++;                // next column
                 }
             }
@@ -65,7 +65,70 @@ public class GridModelBuilder {
         // and pass vertex to meshBuilder
         MeshPartBuilder.VertexInfo vert = new MeshPartBuilder.VertexInfo();
         vert.hasColor = false;
-        vert.hasNormal = true;
+        vert.hasNormal = false;
+        vert.hasPosition = true;
+        vert.hasUV = true;
+
+        for (int i = 0; i < numVerts; i++) {
+            int x = i % N;    // e.g. in [0 .. 3] if N == 4
+            int y = i / N;
+            float reps = 16;
+            float u =  (x * reps) / (float) N;
+            float v =  (y * reps) / (float) N;
+            vert.position.set(vertices[i]);
+            vert.uv.x = u;                    // texture needs to have repeat wrapping enables to handle u,v > 1
+            vert.uv.y = v;
+            meshBuilder.vertex(vert);
+        }
+
+        return modelBuilder.end();
+    }
+
+    /** Add triangles to close gaps with next enclosing level */
+    public Model makeTriangleFringe(int N, int M, int primitive, Material material) {
+
+        int attr = VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates;
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+        modelBuilder.begin();
+        MeshBuilder meshBuilder = (MeshBuilder) modelBuilder.part("fringe", primitive, attr, material);
+        final int numVerts = N;
+        final int numTris = (N-1)/2;
+        Vector3[] vertices = new Vector3[numVerts];
+
+        meshBuilder.ensureVertices(numVerts);
+        meshBuilder.ensureTriangleIndices(numTris);
+
+
+        Vector3 pos = new Vector3();
+        float ht = 0f; // this will be filled in by the vertex shader
+
+        for (int x = 0; x < N; x++) {
+            pos.set(x , ht, 0 );            // swapping z,y to orient horizontally
+            vertices[x] = new Vector3(pos);
+        }
+//        for (int x = 0; x < N; x++) {
+//            pos.set(x , ht, N );            // swapping z,y to orient horizontally
+//            vertices[N+x] = new Vector3(pos);
+//        }
+        short v0 = (short) 0;    // vertex number at top left of this row
+        for (short t = 0; t < N-1; t++) {
+            // counter-clockwise winding
+            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
+            v0+=2;                // next triangle
+        }
+//        v0 = (short)N;
+//        for (short t = 0; t < N-1; t++) {
+//            // counter-clockwise winding
+//            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
+//            v0+=2;                // next triangle
+//        }
+
+        // now normalize each normal (which is the sum of the attached triangle normals)
+        // and pass vertex to meshBuilder
+        MeshPartBuilder.VertexInfo vert = new MeshPartBuilder.VertexInfo();
+        vert.hasColor = false;
+        vert.hasNormal = false;
         vert.hasPosition = true;
         vert.hasUV = true;
 
@@ -86,7 +149,7 @@ public class GridModelBuilder {
 
 
 
-    private void addTriangle(MeshBuilder meshBuilder, final Vector3[] vertices, int N, short v0, short v1, short v2) {
+    private void addTriangle(MeshBuilder meshBuilder, final Vector3[] vertices, short v0, short v1, short v2) {
         meshBuilder.triangle(v0, v1, v2);
     }
 }

@@ -27,8 +27,8 @@ void main() {
 
 
 	//worldPos.y = 2640.0 * (heightSample.r*256.0 + heightSample.g - 0.5);
-	worldPos.y = 20000.0 * (heightSample.a - 0.5);
-	//worldPos.y = 8.0 * sin(worldPos.x/16.0) * cos(worldPos.z/17.0);
+	//worldPos.y = 20000.0 * (heightSample.a - 0.5);
+	worldPos.y = 8.0 * sin(worldPos.x/16.0) * cos(worldPos.z/17.0);
 
     //rldPos.y = 0;
 
