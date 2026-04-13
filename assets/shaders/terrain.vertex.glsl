@@ -13,6 +13,7 @@ uniform mat4 u_projViewTrans;
 
 varying vec4 v_normal;
 varying vec2 v_UV;
+varying vec4 v_heightSample;
 
 void main() {
 
@@ -22,11 +23,14 @@ void main() {
 
     v_UV = (worldPos.xz / (8*16128.0))-vec2(0.5);
     vec4 heightSample = texture2D(u_emissiveTexture, v_UV);
+    v_heightSample = heightSample;
 
 
-	worldPos.y = 64000.0 * (heightSample.r - 0.5);
-	//worldPos.y = 1000.0 * (heightSample.r - 0.5);
+	//worldPos.y = 2640.0 * (heightSample.r*256.0 + heightSample.g - 0.5);
+	worldPos.y = 20000.0 * (heightSample.a - 0.5);
 	//worldPos.y = 8.0 * sin(worldPos.x/16.0) * cos(worldPos.z/17.0);
+
+    //rldPos.y = 0;
 
    	gl_Position = u_projViewTrans * worldPos;
 }

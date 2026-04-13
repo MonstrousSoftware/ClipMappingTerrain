@@ -6,6 +6,7 @@ uniform sampler2D u_diffuseTexture;
 
 varying vec4 v_normal;
 varying vec2 v_UV;
+varying vec4 v_heightSample;
 
 void main() {
     vec4 diffuse = texture2D(u_diffuseTexture, v_UV);

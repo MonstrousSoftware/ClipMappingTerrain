@@ -52,7 +52,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		gui = new GUI(this);
 
-        terrain = new Terrain(gui, 63, 8, 8f);
+        terrain = new Terrain(gui, 63, 3, 8f);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -71,7 +71,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		// add camera controller
 		camController = new CameraInputController(cam);
-        camController.scrollFactor = -10f;
+        camController.scrollFactor = -100f;
 
         addSkybox();
         addAxes();
@@ -109,32 +109,6 @@ public class TerrainDemo extends ApplicationAdapter {
                 return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
             }
         });
-
-//		if (true) {
-//			modelBatch = new ModelBatch(new DefaultShaderProvider() {
-//				@Override
-//				protected Shader createShader(final Renderable renderable) {
-//					Shader sh = new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
-//					return sh;
-//				}
-//			});
-//		} else {
-//			modelBatch = new ModelBatch(new DefaultShaderProvider() {
-//				@Override
-//				protected Shader createShader(final Renderable renderable) {
-//					ColorAttribute colAttr = (ColorAttribute) renderable.material.get(ColorAttribute.Diffuse);
-//					if (colAttr != null && colAttr.color.equals(Color.SKY))    // special colour
-//					{
-//						return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/skybox.vertex.glsl").readString(), Gdx.files.internal("shaders/skybox.fragment.glsl").readString()));
-//					}
-//                    if (colAttr != null && colAttr.color.equals(Color.FIREBRICK))    // special colour
-//                    {
-//                        return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
-//                    }
-//					return new DefaultShader(renderable);
-//				}
-//			});
-//		}
 
 		// create ortho camera for overlay
 		orthoCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -178,7 +152,7 @@ public class TerrainDemo extends ApplicationAdapter {
         character.transform.getTranslation(pos);
         pos.y = h + 350f;
         character.transform.setTranslation(pos);
-        Gdx.app.log("position: ", pos.toString());
+        //Gdx.app.log("position: ", pos.toString());
         character.transform.getTranslation(characterCam.position);
         characterCam.direction.set(0,0,-1);
         characterCam.direction.rotate(Vector3.Y, controller.angle);
@@ -195,7 +169,7 @@ public class TerrainDemo extends ApplicationAdapter {
 //			cam.position.y = heightBelowCam + 10f;
 
 		// clear screen
-        ScreenUtils.clear(Color.BLACK, true);
+        ScreenUtils.clear(Color.DARK_GRAY, true);
 
 		modelBatch.begin(cam);
 		if (gui.showSkybox) {
@@ -215,7 +189,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		if (gui.showHeightmap) {
 			batch.begin();
-			batch.draw(terrain.getHeightMapTexture(), 0, 0);
+			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-256, 0, 256, 256);
 			batch.end();
 		}
 		gui.render(Gdx.graphics.getDeltaTime());
@@ -227,8 +201,8 @@ public class TerrainDemo extends ApplicationAdapter {
 	public void dispose() {
 		modelBatch.dispose();
 		batch.dispose();
-		//heightMapTexture.dispose();
         terrain.dispose();
+        gui.dispose();
 	}
 
 
@@ -259,9 +233,6 @@ public class TerrainDemo extends ApplicationAdapter {
         Model model = modelBuilder.createCone(size, size, size, 4,
             new Material(ColorAttribute.createDiffuse(Color.CYAN)),
             VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked|VertexAttributes.Usage.Normal);
-//        Model model = modelBuilder.createBox(size, size, size,
-//            new Material(ColorAttribute.createDiffuse(Color.CYAN)),
-//                       VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked|VertexAttributes.Usage.Normal);
         character = new ModelInstance(model, 0, size*2, 0);
         character.transform.rotate(Vector3.X, 90);
     }

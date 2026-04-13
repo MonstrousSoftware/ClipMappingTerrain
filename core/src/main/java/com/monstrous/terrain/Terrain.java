@@ -41,7 +41,8 @@ public class Terrain implements Disposable {
         this.numLevels = numLevels;
         this.tileSize = tileSize;
         //heightMap = new HeightMap(256); //clipMapSize+1);
-        heightMap = new HeightMap(Gdx.files.internal("terrain/Rugged Terrain Height Map PNG.png"));
+        heightMap = new HeightMap(Gdx.files.internal("terrain/everest_2048_2048_16bit.png"));
+        //heightMap = new HeightMap(Gdx.files.internal("terrain/Rugged Terrain Height Map PNG.png"));
         gridBuilder = new GridModelBuilder();
         final int N = clipMapSize;
         final int M = (N+1)/4;
@@ -55,7 +56,8 @@ public class Terrain implements Disposable {
 
         int primitive = GL20.GL_TRIANGLES;
 
-        Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
+        //Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
+        Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/everest_2048_2048_albedo_topo.png"), true);
         diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
@@ -70,19 +72,19 @@ public class Terrain implements Disposable {
 //        mat = new Material(TextureAttribute.createDiffuse(grassTexture));
 
         // NxN center grid
-        gridModel = gridBuilder.makeGridModel(heightMap,  N, primitive, mat);
+        gridModel = gridBuilder.makeGridModel( N, primitive, mat);
         // vertex positions range is [0..M][0..M]
-        squareMxM = gridBuilder.makeGridModel(heightMap,  M, M, primitive, mat);
+        squareMxM = gridBuilder.makeGridModel( M, M, primitive, mat);
         // vertical filler blocks to close the ring
-        filler3XM = gridBuilder.makeGridModel(heightMap,  3, M, primitive, mat);
+        filler3XM = gridBuilder.makeGridModel(3, M, primitive, mat);
         // horizontal filler blocks to close the ring
-        fillerMX3 = gridBuilder.makeGridModel(heightMap,  M, 3, primitive, mat);
+        fillerMX3 = gridBuilder.makeGridModel(  M, 3, primitive, mat);
 
         // top/bottom trim
-        horizontalTrim = gridBuilder.makeGridModel(heightMap,  2*M+1, 2, primitive, mat);
+        horizontalTrim = gridBuilder.makeGridModel(  2*M+1, 2, primitive, mat);
 
         // left/right trim
-        verticalTrim = gridBuilder.makeGridModel(heightMap,  2, 2*M, primitive, mat);
+        verticalTrim = gridBuilder.makeGridModel( 2, 2*M, primitive, mat);
 
         focus = new Vector3();
 
@@ -155,7 +157,7 @@ public class Terrain implements Disposable {
 
     private void addTexturedSquare(Array<TerrainElement> elements, float scale){
         float offset = scale/clipMapSize;   // world size of one tile
-        Model model = gridBuilder.makeGridModel(heightMap,  clipMapSize, GL20.GL_TRIANGLES, new Material(TextureAttribute.createDiffuse(grassTexture)));
+        Model model = gridBuilder.makeGridModel( clipMapSize, GL20.GL_TRIANGLES, new Material(TextureAttribute.createDiffuse(grassTexture)));
         ModelInstance instance = new ModelInstance(model, new Vector3(-offset, 0, -offset));
         instance.transform.scale(scale, 1f, scale);
         //elements.add(new TerrainElement(instance));
