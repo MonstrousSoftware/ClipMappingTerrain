@@ -50,9 +50,11 @@ public class TerrainDemo extends ApplicationAdapter {
 	@Override
 	public void create() {
 
-		gui = new GUI(this);
+        gui = new GUI(this);
 
         terrain = new Terrain(gui, 255, 8, 8f);
+
+
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
