@@ -36,7 +36,7 @@ public class TerrainDemo extends ApplicationAdapter {
 	public ModelInstance skybox;
     private ModelInstance xyz;
     private ModelInstance character;
-    private Terrain terrain;
+    public Terrain terrain;
     private CharacterController controller;
     public PerspectiveCamera characterCam;
 

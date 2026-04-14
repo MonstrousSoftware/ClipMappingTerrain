@@ -1,11 +1,11 @@
 package com.monstrous.terrain;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
-import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GUI {
@@ -15,7 +15,10 @@ public class GUI {
     public TerrainDemo main;
 
     public boolean showHeightmap = false;
+
+    public boolean showTerrain = true;
     public boolean showGrid = true;
+    public boolean culling = true;
     public boolean showTerrainTexture = false;
     public boolean showSkybox = false;
     public boolean showCameraPath = false;
@@ -63,16 +66,37 @@ public class GUI {
 
         // show grid
         //
-        final CheckBox gridCheckbox = new CheckBox("show grid", skin);
-        gridCheckbox.setChecked(showGrid);
+        final CheckBox gridCheckbox = new CheckBox("show terrain", skin);
+        gridCheckbox.setChecked(showTerrain);
         gridCheckbox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                showGrid = gridCheckbox.isChecked();
-                refresh();
+                showTerrain = gridCheckbox.isChecked();
             }
         });
         controls.add(gridCheckbox).row();
+
+        final CheckBox linesCheckbox = new CheckBox("show grid", skin);
+        linesCheckbox.setChecked(showTerrain);
+        linesCheckbox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                showGrid = linesCheckbox.isChecked();
+                main.terrain.generateBlocks(showGrid ? GL20.GL_LINES : GL20.GL_TRIANGLES);
+            }
+        });
+        controls.add(linesCheckbox).row();
+
+        final CheckBox cullingCheckbox = new CheckBox("frustum culling", skin);
+        cullingCheckbox.setChecked(culling);
+        cullingCheckbox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                culling = cullingCheckbox.isChecked();
+                main.terrain.setCulling(culling);
+            }
+        });
+        controls.add(cullingCheckbox).row();
 
         final CheckBox terrainTextureCheckbox = new CheckBox("show terrain texture", skin);
         terrainTextureCheckbox.setChecked(showTerrainTexture);
@@ -80,7 +104,6 @@ public class GUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 showTerrainTexture = terrainTextureCheckbox.isChecked();
-                refresh();
             }
         });
         controls.add(terrainTextureCheckbox).row();
@@ -94,7 +117,6 @@ public class GUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 showSkybox = skyCheckbox.isChecked();
-                refresh();
             }
         });
         controls.add(skyCheckbox).row();
@@ -105,7 +127,6 @@ public class GUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 showCameraPath = camPathCheckbox.isChecked();
-                refresh();
             }
         });
         controls.add(camPathCheckbox).row();
@@ -241,9 +262,6 @@ public class GUI {
 
 
 
-    private void refresh() {
-        //main.regenerate();
-    }
 
     public void resize (int width, int height) {
           stage.getViewport().update(width, height, true);

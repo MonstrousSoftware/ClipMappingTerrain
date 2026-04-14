@@ -18,14 +18,14 @@ public class Terrain implements Disposable {
     public HeightMap heightMap;
     public Texture grassTexture;
     public Array<TerrainElement> elements = new Array<>();
-    private final GridModelBuilder gridBuilder;
-    private final Model squareMxM;
-    private final Model fillerMX3;
-    private final Model filler3XM;
-    private final Model filler3X3;
-    private final Model horizontalTrim;
-    private final Model verticalTrim;
-    private final Model fringe;
+    //private final GridModelBuilder gridBuilder;
+    private Model squareMxM;
+    private Model fillerMX3;
+    private Model filler3XM;
+    private Model filler3X3;
+    private Model horizontalTrim;
+    private Model verticalTrim;
+    private Model fringe;
     private Vector3 focus;
     public boolean frustumCulling = false;
 
@@ -44,18 +44,33 @@ public class Terrain implements Disposable {
         //heightMap = new HeightMap(256); //clipMapSize+1);
         heightMap = new HeightMap(Gdx.files.internal("terrain/everest_2048_2048_16bit.png"));
         //heightMap = new HeightMap(Gdx.files.internal("terrain/Rugged Terrain Height Map PNG.png"));
-        gridBuilder = new GridModelBuilder();
+
+//        // get ground texture, use mip mapping and allow repeat wrapping
+//        grassTexture = new Texture(Gdx.files.internal("Grass.png"), true);
+//        grassTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
+//        grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
+
+
+
+        focus = new Vector3();
+
+        generateBlocks(GL20.GL_LINES);
+
+        buildTerrain();
+        Gdx.app.log("instances", ""+ elements.size);
+    }
+
+    /** Generate terrain building block models. This can be called to change the appearance.
+     *
+     * @param primitive GL_LINES or GL_TRIANGLES
+     */
+    public void generateBlocks(int primitive){
+        disposeBlocks();
+        GridModelBuilder gridBuilder = new GridModelBuilder();
         final int N = clipMapSize;
         final int M = (N+1)/4;
 
-
-
-        // get ground texture, use mip mapping and allow repeat wrapping
-        grassTexture = new Texture(Gdx.files.internal("Grass.png"), true);
-        grassTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
-        grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-
-        int primitive = GL20.GL_LINES;
+        //int primitive = GL20.GL_LINES;
 
         //Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
         Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/everest_2048_2048_albedo_topo.png"), true);
@@ -65,13 +80,7 @@ public class Terrain implements Disposable {
         Material mat = new Material(
             ColorAttribute.createDiffuse(Color.GREEN),
             TextureAttribute.createDiffuse(diffuseTexture),
-            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())
-                );
-
-        Material matRed = new Material(
-            ColorAttribute.createDiffuse(Color.RED),
-            TextureAttribute.createDiffuse(grassTexture),
-            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())
+            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())    // use "emissive texture" for height map
         );
 
         // each NxN level (the central level and surrounding ring levels)
@@ -91,17 +100,16 @@ public class Terrain implements Disposable {
 
         // left/right trim
         verticalTrim = gridBuilder.makeGridModel( 2, 2*M, primitive, mat);
-        primitive = GL20.GL_TRIANGLES;
+
         // degenerate triangles to close gaps on border with next level
         fringe = gridBuilder.makeTriangleFringe(N, N, primitive, mat);
-
-        focus = new Vector3();
-
-        buildTerrain();
-        Gdx.app.log("instances", ""+ elements.size);
     }
 
 
+    /** Enable frustum culling for better performance */
+    public void setCulling(boolean culling){
+        frustumCulling = culling;
+    }
 
     /** update terrain to have the highest level of detail near the focal instance */
     public void update(Vector3 focalPosition){
@@ -143,14 +151,14 @@ public class Terrain implements Disposable {
 
         // todo heightmap should be sampled according to scale and position
 
-        if(gui.showTerrainTexture) {
-            addTexturedSquare(elements, scale);
-            // todo ring
-        }
+//        if(gui.showTerrainTexture) {
+//            addTexturedSquare(elements, scale);
+//            // todo ring
+//        }
 
 
         // line raster for demonstration purposes
-        if (gui.showGrid) {
+        if (gui.showTerrain) {
             addDebugRing(elements, scale);
             if(level == 0)   // central square grid
                 addCentralSquare(elements, scale);
@@ -162,13 +170,13 @@ public class Terrain implements Disposable {
 
 
 
-    private void addTexturedSquare(Array<TerrainElement> elements, float scale){
-        float offset = scale/clipMapSize;   // world size of one tile
-        Model model = gridBuilder.makeGridModel( clipMapSize, GL20.GL_TRIANGLES, new Material(TextureAttribute.createDiffuse(grassTexture)));
-        ModelInstance instance = new ModelInstance(model, new Vector3(-offset, 0, -offset));
-        instance.transform.scale(scale, 1f, scale);
-        //elements.add(new TerrainElement(instance));
-    }
+//    private void addTexturedSquare(Array<TerrainElement> elements, float scale){
+//        float offset = scale/clipMapSize;   // world size of one tile
+//        Model model = gridBuilder.makeGridModel( clipMapSize, GL20.GL_TRIANGLES, new Material(TextureAttribute.createDiffuse(grassTexture)));
+//        ModelInstance instance = new ModelInstance(model, new Vector3(-offset, 0, -offset));
+//        instance.transform.scale(scale, 1f, scale);
+//        //elements.add(new TerrainElement(instance));
+//    }
 
 //    private void addDebugSquare(Array<TerrainElement> elements, float scale){
 //        final int N = clipMapSize;
@@ -309,12 +317,20 @@ public class Terrain implements Disposable {
     @Override
     public void dispose() {
         heightMap.dispose();
+        disposeBlocks();
+    }
+
+    private void disposeBlocks() {
+        if(squareMxM == null)
+            return;
         squareMxM.dispose();
+        squareMxM = null;
         filler3XM.dispose();
         fillerMX3.dispose();
         filler3X3.dispose();
         horizontalTrim.dispose();
         verticalTrim.dispose();
         fringe.dispose();
+
     }
 }
