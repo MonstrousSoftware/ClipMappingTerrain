@@ -45,9 +45,8 @@ public class GridModelBuilder {
 
 
                 vertices[y * N + x] = new Vector3(pos);
+
                 //normals[y * N + x] = new Vector3(0, 0, 0);
-
-
             }
             if (y >= 1) {
                 // add to index list to make a row of triangles using vertices at y and y-1
@@ -67,24 +66,18 @@ public class GridModelBuilder {
         vert.hasColor = false;
         vert.hasNormal = false;
         vert.hasPosition = true;
-        vert.hasUV = true;
+        vert.hasUV = false;
 
         for (int i = 0; i < numVerts; i++) {
-            int x = i % N;    // e.g. in [0 .. 3] if N == 4
-            int y = i / N;
-            float reps = 16;
-            float u =  (x * reps) / (float) N;
-            float v =  (y * reps) / (float) N;
             vert.position.set(vertices[i]);
-            vert.uv.x = u;                    // texture needs to have repeat wrapping enables to handle u,v > 1
-            vert.uv.y = v;
             meshBuilder.vertex(vert);
         }
 
         return modelBuilder.end();
     }
 
-    /** Add triangles to close gaps with next enclosing level */
+    /** Create a list of triangles to close gaps with next enclosing level. These triangles close any gap between the tiles of this level
+     * and the tiles of the enclosing level which are twice as big. */
     public Model makeTriangleFringe(int N, int M, int primitive, Material material) {
 
         int attr = VertexAttributes.Usage.Position | VertexAttributes.Usage.TextureCoordinates;
@@ -97,10 +90,9 @@ public class GridModelBuilder {
         // (N-1)/2 triangles per side = number of tiles at next higher level
         final int numTris = (N-1) * (M-1);
 
-        Vector3[] vertices = new Vector3[numVerts];
+        Vector3[] positions = new Vector3[numVerts];
         meshBuilder.ensureVertices(numVerts);
         meshBuilder.ensureTriangleIndices(numTris);
-
 
         Vector3 pos = new Vector3();
         float ht = 0f; // this will be filled in by the vertex shader
@@ -109,60 +101,55 @@ public class GridModelBuilder {
         int index = 0;
         for (int x = 0; x < N; x++) {
             pos.set(x , ht, 0 );
-            vertices[index++] = new Vector3(pos);
+            positions[index++] = new Vector3(pos);
         }
         for (int x = 0; x < N; x++) {
             pos.set(x , ht, M-1 );
-            vertices[index++] = new Vector3(pos);
+            positions[index++] = new Vector3(pos);
         }
         for (int z = 0; z < M; z++) {
             pos.set(0 , ht, z );
-            vertices[index++] = new Vector3(pos);
+            positions[index++] = new Vector3(pos);
         }
         for (int z = 0; z < M; z++) {
             pos.set(N-1 , ht, z );
-            vertices[index++] = new Vector3(pos);
+            positions[index++] = new Vector3(pos);
         }
 
-        // build triangles along the edge to match up with next level
+        // build triangles along the edges to match up with next level
         short v0 = (short) 0;    // index
         for (short t = 0; t < (N-1)/2; t++) {
-            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
+            addTriangle(meshBuilder, positions,  v0, (short) (v0 + 1), (short) (v0 + 2));
             v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
         }
         v0++;
         for (short t = 0; t < (N-1)/2; t++) {
-            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 2), (short) (v0 + 1)); // reverse winding order
+            addTriangle(meshBuilder, positions,  v0, (short) (v0 + 2), (short) (v0 + 1)); // reverse winding order
             v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
         }
         v0++;
         for (short t = 0; t < (M-1)/2; t++) {
-            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 2), (short) (v0 + 1)); // reverse winding order
+            addTriangle(meshBuilder, positions,  v0, (short) (v0 + 2), (short) (v0 + 1)); // reverse winding order
             v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
         }
         v0++;
         for (short t = 0; t < (M-1)/2; t++) {
-            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
+            addTriangle(meshBuilder, positions,  v0, (short) (v0 + 1), (short) (v0 + 2));
             v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
         }
-
 
         // pass vertex to meshBuilder
         MeshPartBuilder.VertexInfo vert = new MeshPartBuilder.VertexInfo();
         vert.hasColor = false;
         vert.hasNormal = false;
         vert.hasPosition = true;
-        vert.hasUV = true;
+        vert.hasUV = false;
 
-        final float reps = 16;
+//        final float reps = 16;
         for (int i = 0; i < numVerts; i++) {
-            int x = i % N;    // e.g. in [0 .. 3] if N == 4
-            int y = i / N;
-            float u =  (x * reps) / (float) N;
-            float v =  (y * reps) / (float) N;
-            vert.position.set(vertices[i]);
-            vert.uv.x = u;                    // texture needs to have repeat wrapping enables to handle u,v > 1
-            vert.uv.y = v;
+            vert.position.set(positions[i]);
+//            vert.uv.x = (positions[i].x * reps) / (float) N;
+//            vert.uv.y = (positions[i].z * reps) / (float) M;
             meshBuilder.vertex(vert);
         }
 
