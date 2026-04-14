@@ -52,7 +52,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
         gui = new GUI(this);
 
-        terrain = new Terrain(gui, 255, 8, 8f);
+        terrain = new Terrain(gui, 255, 7, 16f);
 
 
 
@@ -67,7 +67,7 @@ public class TerrainDemo extends ApplicationAdapter {
         characterCam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
         characterCam.position.set(0, 10, 0);
         characterCam.lookAt(0, 0, -100);
-        characterCam.far = 200000f;
+        characterCam.far = 20000f;
         characterCam.near = 0.1f;
         characterCam.update(true);
 
@@ -92,6 +92,7 @@ public class TerrainDemo extends ApplicationAdapter {
 		environment = new Environment();
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.5f, 0.5f, 0.5f, 1f));
 		environment.add(new DirectionalLight().set(1, 1, 1f, -.4f, -0.4f, -0.2f));
+        environment.set(new ColorAttribute(ColorAttribute.Fog, Color.SKY));
 		String prefix = "textures/elyvision/";
 		String ext = ".png";
 
@@ -144,7 +145,7 @@ public class TerrainDemo extends ApplicationAdapter {
 		//camController.update();
         float delta = Gdx.graphics.getDeltaTime();
 		time += delta;
-		//updateCamera(time);
+		updateCamera(time);
 
         controller.update(delta);
         character.transform.getTranslation(pos);
@@ -160,7 +161,8 @@ public class TerrainDemo extends ApplicationAdapter {
         characterCam.direction.rotate(Vector3.Y, controller.angle);
 
         characterCam.update(true);
-        terrain.update(pos);
+
+        terrain.update(cam.position);
 
 
         //character.transform.trn(characterCam.position.x, h, characterCam.position.z);
@@ -171,7 +173,7 @@ public class TerrainDemo extends ApplicationAdapter {
 //			cam.position.y = heightBelowCam + 10f;
 
 		// clear screen
-        ScreenUtils.clear(Color.GRAY, true);
+        ScreenUtils.clear(Color.SKY, true);
 
 		modelBatch.begin(cam);
 		if (gui.showSkybox) {
@@ -183,7 +185,7 @@ public class TerrainDemo extends ApplicationAdapter {
         modelBatch.end();
 
         terrainBatch.begin(cam);
-        terrain.render(characterCam, terrainBatch, environment);
+        terrain.render(cam, terrainBatch, environment);
         terrainBatch.end();
 
         if(gui.showCameraPath)
@@ -242,13 +244,16 @@ public class TerrainDemo extends ApplicationAdapter {
 
 
 	private void buildCameraPath() {
+        float ht = 20000f;
+        float scl = 3f;
+
 		Vector3[] controlPoints = {
-				new Vector3(-2000, 400f, 2000),
-				new Vector3(2000, 500, 2500),
+				new Vector3(-2000*scl, ht+400f*scl, 2000*scl),
+				new Vector3(2000*scl, ht+500*scl, 2500*scl),
 
-				new Vector3(2500, 2600, -3000),
+				new Vector3(2500*scl, ht+2600*scl, -3000*scl),
 
-				new Vector3(-1500, 400, -2400)};
+				new Vector3(-1500*scl, ht+400*scl, -2400*scl)};
 		myCatmull = new CatmullRomSpline<Vector3>(controlPoints, true);
 
 		// fill array of points for debug render
