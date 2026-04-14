@@ -61,7 +61,7 @@ public class GridModelBuilder {
             }
         }
 
-        // now normalize each normal (which is the sum of the attached triangle normals)
+
         // and pass vertex to meshBuilder
         MeshPartBuilder.VertexInfo vert = new MeshPartBuilder.VertexInfo();
         vert.hasColor = false;
@@ -92,10 +92,12 @@ public class GridModelBuilder {
         ModelBuilder modelBuilder = new ModelBuilder();
         modelBuilder.begin();
         MeshBuilder meshBuilder = (MeshBuilder) modelBuilder.part("fringe", primitive, attr, material);
-        final int numVerts = N;
-        final int numTris = (N-1)/2;
-        Vector3[] vertices = new Vector3[numVerts];
+        // N or M vertices per side
+        final int numVerts = 2*N+2*M;
+        // (N-1)/2 triangles per side = number of tiles at next higher level
+        final int numTris = (N-1) * (M-1);
 
+        Vector3[] vertices = new Vector3[numVerts];
         meshBuilder.ensureVertices(numVerts);
         meshBuilder.ensureTriangleIndices(numTris);
 
@@ -103,39 +105,59 @@ public class GridModelBuilder {
         Vector3 pos = new Vector3();
         float ht = 0f; // this will be filled in by the vertex shader
 
+        // add all the vertices on the circumference of the rectangle
+        int index = 0;
         for (int x = 0; x < N; x++) {
-            pos.set(x , ht, 0 );            // swapping z,y to orient horizontally
-            vertices[x] = new Vector3(pos);
+            pos.set(x , ht, 0 );
+            vertices[index++] = new Vector3(pos);
         }
-//        for (int x = 0; x < N; x++) {
-//            pos.set(x , ht, N );            // swapping z,y to orient horizontally
-//            vertices[N+x] = new Vector3(pos);
-//        }
-        short v0 = (short) 0;    // vertex number at top left of this row
-        for (short t = 0; t < N-1; t++) {
-            // counter-clockwise winding
-            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
-            v0+=2;                // next triangle
+        for (int x = 0; x < N; x++) {
+            pos.set(x , ht, M-1 );
+            vertices[index++] = new Vector3(pos);
         }
-//        v0 = (short)N;
-//        for (short t = 0; t < N-1; t++) {
-//            // counter-clockwise winding
-//            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
-//            v0+=2;                // next triangle
-//        }
+        for (int z = 0; z < M; z++) {
+            pos.set(0 , ht, z );
+            vertices[index++] = new Vector3(pos);
+        }
+        for (int z = 0; z < M; z++) {
+            pos.set(N-1 , ht, z );
+            vertices[index++] = new Vector3(pos);
+        }
 
-        // now normalize each normal (which is the sum of the attached triangle normals)
-        // and pass vertex to meshBuilder
+        // build triangles along the edge to match up with next level
+        short v0 = (short) 0;    // index
+        for (short t = 0; t < (N-1)/2; t++) {
+            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
+            v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
+        }
+        v0++;
+        for (short t = 0; t < (N-1)/2; t++) {
+            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 2), (short) (v0 + 1)); // reverse winding order
+            v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
+        }
+        v0++;
+        for (short t = 0; t < (M-1)/2; t++) {
+            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 2), (short) (v0 + 1)); // reverse winding order
+            v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
+        }
+        v0++;
+        for (short t = 0; t < (M-1)/2; t++) {
+            addTriangle(meshBuilder, vertices,  v0, (short) (v0 + 1), (short) (v0 + 2));
+            v0+=2;                // next triangle, reuse the last vertex for the start of the next triangle
+        }
+
+
+        // pass vertex to meshBuilder
         MeshPartBuilder.VertexInfo vert = new MeshPartBuilder.VertexInfo();
         vert.hasColor = false;
         vert.hasNormal = false;
         vert.hasPosition = true;
         vert.hasUV = true;
 
+        final float reps = 16;
         for (int i = 0; i < numVerts; i++) {
             int x = i % N;    // e.g. in [0 .. 3] if N == 4
             int y = i / N;
-            float reps = 16;
             float u =  (x * reps) / (float) N;
             float v =  (y * reps) / (float) N;
             vert.position.set(vertices[i]);

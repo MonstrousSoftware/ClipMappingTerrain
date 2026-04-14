@@ -52,12 +52,12 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		gui = new GUI(this);
 
-        terrain = new Terrain(gui, 15, 3, 8f);
+        terrain = new Terrain(gui, 63, 8, 8f);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		cam.position.set(0, 200, 100);
-		cam.lookAt(0, 0, -100);
+		cam.lookAt(0, 0, 0);
 		cam.far = 200000f;
 		cam.near = 0.1f;
 		cam.update();

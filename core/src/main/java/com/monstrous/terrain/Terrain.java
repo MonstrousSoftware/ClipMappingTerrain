@@ -68,6 +68,12 @@ public class Terrain implements Disposable {
             TextureAttribute.createEmissive(heightMap.getHeightMapTexture())
                 );
 
+        Material matRed = new Material(
+            ColorAttribute.createDiffuse(Color.RED),
+            TextureAttribute.createDiffuse(grassTexture),
+            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())
+        );
+
 
         // NxN center grid
         gridModel = gridBuilder.makeGridModel( N, primitive, mat);
@@ -83,7 +89,7 @@ public class Terrain implements Disposable {
 
         // left/right trim
         verticalTrim = gridBuilder.makeGridModel( 2, 2*M, primitive, mat);
-
+        primitive = GL20.GL_TRIANGLES;
         // degenerate triangles to close gaps on border with next level
         fringe = gridBuilder.makeTriangleFringe(N, N, primitive, mat);
 
@@ -172,7 +178,7 @@ public class Terrain implements Disposable {
         xf = 2 * scale * Math.round((focus.x+xf) / (2*scale));
         zf = 2 * scale * Math.round((focus.z+zf) / (2*scale));
 
-   //     addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
+        addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
 
         addSquare(elements, fringe, scale, N, N, xf, zf,  0, 0);
     }
