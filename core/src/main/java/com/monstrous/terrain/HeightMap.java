@@ -1,5 +1,6 @@
 package com.monstrous.terrain;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -52,9 +53,11 @@ public class HeightMap implements Disposable {
     public float get(float wx, float wz){
         int x = Math.round(wx * mapSize);
         int z = Math.round(wz*mapSize);
+        // todo alpha is 16-bit but getPixel reduces this to 8 bits. Should read from ByteBuffer instead.
         int pixel = pixmap.getPixel(x, z);
-        int red = (pixel >> 24) & 0xFF;
-        float h = 64000f * ((red/255.0f)-0.5f);
+        //Gdx.app.log("pixel: ", Integer.toHexString(pixel));
+        int a = (pixel) & 0xFF;
+        float h = 20000f * ((a/255.0f)-0.5f);
         return h; //heightMap[z][x];
     }
 

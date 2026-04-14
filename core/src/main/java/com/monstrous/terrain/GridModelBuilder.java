@@ -33,24 +33,16 @@ public class GridModelBuilder {
 
 
         Vector3 pos = new Vector3();
-        float posz;
+        float height = 0f; // this will be filled in by the vertex shader
 
-        for (int y = 0; y < M; y++) {
-            float posy = y; //((float) y / (float) N) - 0.5f;        // y in [-0.5f .. 0.5f]
+        for (int z = 0; z < M; z++) {
             for (int x = 0; x < N; x++) {
-                float posx = x; //((float) x / (float) N - 0.5f);        // x in [-0.5f .. 0.5f]
-
-                posz = 0f;  // this will be filled in by the vertex shader
-                pos.set(posx , posz, posy );            // swapping z,y to orient horizontally
-
-
-                vertices[y * N + x] = new Vector3(pos);
-
-                //normals[y * N + x] = new Vector3(0, 0, 0);
+                pos.set(x , height, z );            // swapping z,y to orient horizontally
+                vertices[z * N + x] = new Vector3(pos);
             }
-            if (y >= 1) {
+            if (z >= 1) {
                 // add to index list to make a row of triangles using vertices at y and y-1
-                short v0 = (short) ((y - 1) * N);    // vertex number at top left of this row
+                short v0 = (short) ((z - 1) * N);    // vertex number at top left of this row
                 for (short t = 0; t < N-1; t++) {
                     // counter-clockwise winding
                     addTriangle(meshBuilder, vertices,  v0, (short) (v0 + N), (short) (v0 + 1));
@@ -145,11 +137,8 @@ public class GridModelBuilder {
         vert.hasPosition = true;
         vert.hasUV = false;
 
-//        final float reps = 16;
         for (int i = 0; i < numVerts; i++) {
             vert.position.set(positions[i]);
-//            vert.uv.x = (positions[i].x * reps) / (float) N;
-//            vert.uv.y = (positions[i].z * reps) / (float) M;
             meshBuilder.vertex(vert);
         }
 

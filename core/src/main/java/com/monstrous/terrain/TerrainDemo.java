@@ -52,7 +52,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
 		gui = new GUI(this);
 
-        terrain = new Terrain(gui, 63, 8, 8f);
+        terrain = new Terrain(gui, 255, 8, 8f);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -158,7 +158,7 @@ public class TerrainDemo extends ApplicationAdapter {
         characterCam.direction.rotate(Vector3.Y, controller.angle);
 
         characterCam.update(true);
-        terrain.update(character);
+        terrain.update(pos);
 
 
         //character.transform.trn(characterCam.position.x, h, characterCam.position.z);

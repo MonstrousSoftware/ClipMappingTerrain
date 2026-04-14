@@ -19,10 +19,10 @@ public class Terrain implements Disposable {
     public Texture grassTexture;
     public Array<TerrainElement> elements = new Array<>();
     private final GridModelBuilder gridBuilder;
-    private final Model gridModel;
     private final Model squareMxM;
     private final Model fillerMX3;
     private final Model filler3XM;
+    private final Model filler3X3;
     private final Model horizontalTrim;
     private final Model verticalTrim;
     private final Model fringe;
@@ -32,7 +32,7 @@ public class Terrain implements Disposable {
     /** Construct terrain.
      *
      * @param gui
-     * @param clipMapSize size of each LoD level's grid (in vertices). Should be power of two minus one, e.g. 63
+     * @param clipMapSize size of each LoD level's grid (in vertices). Should be power of two minus one, e.g. 63. Max is 1023.
      * @param numLevels number of LoD levels, i.e. concentric rings
      * @param tileSize size of a single tile in world units
      */
@@ -55,7 +55,7 @@ public class Terrain implements Disposable {
         grassTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
         grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
 
-        int primitive = GL20.GL_TRIANGLES;
+        int primitive = GL20.GL_LINES;
 
         //Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
         Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/everest_2048_2048_albedo_topo.png"), true);
@@ -74,15 +74,17 @@ public class Terrain implements Disposable {
             TextureAttribute.createEmissive(heightMap.getHeightMapTexture())
         );
 
-
-        // NxN center grid
-        gridModel = gridBuilder.makeGridModel( N, primitive, mat);
+        // each NxN level (the central level and surrounding ring levels)
+        // is built up from building blocks: MxM blocks and fillers
+        //
         // vertex positions range is [0..M][0..M]
         squareMxM = gridBuilder.makeGridModel( M, M, primitive, mat);
         // vertical filler blocks to close the ring
         filler3XM = gridBuilder.makeGridModel(3, M, primitive, mat);
         // horizontal filler blocks to close the ring
         fillerMX3 = gridBuilder.makeGridModel(  M, 3, primitive, mat);
+        // central filler for the central square
+        filler3X3 = gridBuilder.makeGridModel(  3, 3, primitive, mat);
 
         // top/bottom trim
         horizontalTrim = gridBuilder.makeGridModel(  2*M+1, 2, primitive, mat);
@@ -102,13 +104,12 @@ public class Terrain implements Disposable {
 
 
     /** update terrain to have the highest level of detail near the focal instance */
-    public void update(ModelInstance focalInstance){
-        focalInstance.transform.getTranslation(focus);
+    public void update(Vector3 focalPosition){
+        this.focus.set(focalPosition);
         buildTerrain();
     }
 
     public void render(Camera camera, ModelBatch modelBatch, Environment environment) {
-
 
         if(frustumCulling) {
             int count = 0;
@@ -150,10 +151,9 @@ public class Terrain implements Disposable {
 
         // line raster for demonstration purposes
         if (gui.showGrid) {
-            if(level == 0)  // central square grid
-                addDebugSquare(elements, scale);
-            else // surrounding ring
-                addDebugRing(elements, scale);
+            addDebugRing(elements, scale);
+            if(level == 0)   // central square grid
+                addCentralSquare(elements, scale);
             // fill the gap to the next level
             addTrim(elements, scale);
         }
@@ -170,17 +170,49 @@ public class Terrain implements Disposable {
         //elements.add(new TerrainElement(instance));
     }
 
-    private void addDebugSquare(Array<TerrainElement> elements, float scale){
+//    private void addDebugSquare(Array<TerrainElement> elements, float scale){
+//        final int N = clipMapSize;
+//        float xf = -(float)  (N-1) * scale/2f;
+//        float zf = -(float)  (N-1) * scale/2f;
+//        // snap to multiple of 2 tiles
+//        xf = 2 * scale * Math.round((focus.x+xf) / (2*scale));
+//        zf = 2 * scale * Math.round((focus.z+zf) / (2*scale));
+//
+//        addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
+//
+//        addSquare(elements, fringe, scale, N, N, xf, zf,  0, 0);
+//    }
+
+    // scale is the size in world units of one tile at this level
+    private void addCentralSquare(Array<TerrainElement> elements, float scale){
         final int N = clipMapSize;
+        final int M = (N+1)/4;
+        // offset for corner of ring
         float xf = -(float)  (N-1) * scale/2f;
         float zf = -(float)  (N-1) * scale/2f;
+
         // snap to multiple of 2 tiles
         xf = 2 * scale * Math.round((focus.x+xf) / (2*scale));
         zf = 2 * scale * Math.round((focus.z+zf) / (2*scale));
 
-        addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
 
-        addSquare(elements, fringe, scale, N, N, xf, zf,  0, 0);
+        // add 4 blocks of size MxM
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, M-1, M-1);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-2*M+1, M-1);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, M-1, N-2*M+1);
+        addSquare(elements, squareMxM, scale, M, M, xf, zf, N-2*M+1, N-2*M+1);
+
+        // vertical filler blocks to close the ring
+        addSquare(elements, filler3XM, scale,3, M,  xf, zf, 2*(M-1), M-1);
+        addSquare(elements, filler3XM, scale, 3, M, xf, zf, 2*(M-1), N-2*M+1);
+
+        // horizontal filler blocks to close the ring
+        addSquare(elements, fillerMX3, scale, M, 3, xf, zf, M-1, 2*(M-1));
+        addSquare(elements, fillerMX3, scale, M, 3, xf, zf, N-2*M+1, 2*(M-1));
+
+        // fill in centre gap
+        addSquare(elements, filler3X3, scale, 3, 3, xf, zf, 2*(M-1), 2*(M-1));
+
     }
 
 
@@ -278,8 +310,11 @@ public class Terrain implements Disposable {
     public void dispose() {
         heightMap.dispose();
         squareMxM.dispose();
-        gridModel.dispose();
         filler3XM.dispose();
         fillerMX3.dispose();
+        filler3X3.dispose();
+        horizontalTrim.dispose();
+        verticalTrim.dispose();
+        fringe.dispose();
     }
 }
