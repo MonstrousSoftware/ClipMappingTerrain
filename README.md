@@ -19,3 +19,4 @@ The height map is a 16 bit grey scale png of 2048 by 2048.
 - `core`: Main module with the application logic shared by all platforms.
 - `lwjgl3`: Primary desktop platform using LWJGL3; was called 'desktop' in older docs.
 - `teavm`: Web backend that supports most JVM languages.
+<img width="1202" height="832" alt="screenshot" src="https://github.com/user-attachments/assets/f259a510-90fd-4b36-b4b7-92a8095a39be" />
