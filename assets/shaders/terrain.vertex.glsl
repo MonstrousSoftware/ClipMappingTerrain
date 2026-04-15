@@ -21,7 +21,7 @@ void main() {
 	vec4 worldPos = u_worldTrans * a_position;
 
     v_UV = (worldPos.xz / (32512.0*4.0))+vec2(0.5);
-    float heightSample = (v_UV.x < 0 || v_UV.x > 1.0 || v_UV.y < 0 || v_UV.y > 1) ? 0.0 : texture2D(u_emissiveTexture, v_UV).a;
+    float heightSample = (v_UV.x < 0.0 || v_UV.x > 1.0 || v_UV.y < 0.0 || v_UV.y > 1.0) ? 0.0 : texture2D(u_emissiveTexture, v_UV).a;
 
 
 	worldPos.y = 20000.0 * (heightSample - 0.5);

@@ -1,17 +1,16 @@
-package com.monstrous.terrain;
+package com.monstrous.terrain.terrain;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
-import com.badlogic.gdx.math.Frustum;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
+import com.monstrous.terrain.GUI;
 
 public class Terrain implements Disposable {
     public GUI gui;
@@ -29,7 +28,7 @@ public class Terrain implements Disposable {
     private Model horizontalTrim;
     private Model verticalTrim;
     private Model fringe;
-    private Vector3 focus;
+    private final Vector3 focus;
     public boolean frustumCulling = true;
 
     /** Construct terrain.
@@ -73,15 +72,13 @@ public class Terrain implements Disposable {
         final int N = clipMapSize;
         final int M = (N+1)/4;
 
-        //Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
         Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/everest_2048_2048_albedo_topo.png"), true);
         diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         diffuseTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
 
         Material mat = new Material(
-            ColorAttribute.createDiffuse(Color.GREEN),
             TextureAttribute.createDiffuse(diffuseTexture),
-            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())    // use "emissive texture" for height map
+            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())    // misuse "emissive texture" for height map
         );
 
         // each NxN level (the central level and surrounding ring levels)
@@ -288,7 +285,7 @@ public class Terrain implements Disposable {
         instance.transform.translate(xo + x * scale, 0, zo + z*scale);
         instance.transform.scale(scale, 1f, scale);
         BoundingBox bbox = new BoundingBox();
-        float YSCALE = 10000f;  // worst case assumption of Y-scale of height map is [-YSCALE .. YSCALE]
+        float YSCALE = 10000f;  // worst case assumption of Y-scale of height map is [-YSCALE .. YSCALE], depends on height map
         min.set(xo + x * scale, -YSCALE, zo + z*scale);
         max.set(min);
         max.add(scale * (w-1), 2*YSCALE, scale*(h-1));

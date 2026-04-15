@@ -1,4 +1,4 @@
-package com.monstrous.terrain;
+package com.monstrous.terrain.terrain;
 
 
 import com.badlogic.gdx.files.FileHandle;

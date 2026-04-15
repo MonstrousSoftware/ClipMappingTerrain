@@ -9,15 +9,12 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.CubemapAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
-import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.CatmullRomSpline;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.monstrous.terrain.terrain.Terrain;
 
 public class TerrainDemo extends ApplicationAdapter {
 	public PerspectiveCamera cam;
@@ -30,8 +27,8 @@ public class TerrainDemo extends ApplicationAdapter {
 	CatmullRomSpline<Vector3> myCatmull;
 	ShapeRenderer shapeRenderer;
 	float time;
-	private Vector3 tmp = new Vector3();
-	private Vector3[] pathPoints = new Vector3[100];	// to render spline (debug)
+	private final Vector3 tmp = new Vector3();
+	private final Vector3[] pathPoints = new Vector3[100];	// to render spline (debug)
 
 
 	@Override

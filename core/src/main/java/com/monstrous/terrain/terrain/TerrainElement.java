@@ -1,4 +1,4 @@
-package com.monstrous.terrain;
+package com.monstrous.terrain.terrain;
 
 import com.badlogic.gdx.graphics.g3d.ModelInstance;
 import com.badlogic.gdx.math.collision.BoundingBox;

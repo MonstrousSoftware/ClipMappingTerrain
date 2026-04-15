@@ -1,7 +1,6 @@
-package com.monstrous.terrain;
+package com.monstrous.terrain.terrain;
 
 import com.badlogic.gdx.graphics.Pixmap;
-import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 
 public class Noise {

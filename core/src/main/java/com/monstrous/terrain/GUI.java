@@ -24,10 +24,6 @@ public class GUI {
     public boolean showCameraPath = false;
     public boolean flyCamera = true;
     public int gridsize = 16;
-    public float xoffset = 0;
-    public float yoffset = 0;
-  //  public int octaves = 5;
-  //  public float persistence = 0.45f;
     public float maxHeight = 600f;
     private Label fpsLabel;
     private Label instancesLabel;
@@ -124,18 +120,6 @@ public class GUI {
             }
         });
         controls.add(flyCheckbox).left().row();
-
-//        final CheckBox terrainTextureCheckbox = new CheckBox("show terrain texture", skin);
-//        terrainTextureCheckbox.setChecked(showTerrainTexture);
-//        terrainTextureCheckbox.addListener(new ChangeListener() {
-//            @Override
-//            public void changed(ChangeEvent event, Actor actor) {
-//                showTerrainTexture = terrainTextureCheckbox.isChecked();
-//            }
-//        });
-//        controls.add(terrainTextureCheckbox).left().row();
-
-
 
 
         final CheckBox camPathCheckbox = new CheckBox("camera spline", skin);
