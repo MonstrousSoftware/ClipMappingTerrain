@@ -11,29 +11,21 @@ import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.CubemapAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.IntAttribute;
-import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.CatmullRomSpline;
-import com.badlogic.gdx.math.Quaternion;
-import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
-import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 public class TerrainDemo extends ApplicationAdapter {
 	public PerspectiveCamera cam;
-	public OrthographicCamera orthoCam;
 	public CameraInputController camController;
 	public Environment environment;
 	public ModelBatch modelBatch;
-    public ModelBatch terrainBatch;
 	public SpriteBatch batch;
 	public GUI gui;
-	public Cubemap cubemap;
-	public ModelInstance skybox;
     private ModelInstance xyz;
     private ModelInstance character;
     public Terrain terrain;
@@ -52,16 +44,16 @@ public class TerrainDemo extends ApplicationAdapter {
 
         gui = new GUI(this);
 
-        terrain = new Terrain(gui, 255, 7, 16f);
+        terrain = new Terrain(gui, 255, 7, 32f);
 
 
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(0, 200, 100);
+		cam.position.set(0, 20000, 0);
 		cam.lookAt(0, 0, 0);
-		cam.far = 200000f;
-		cam.near = 0.1f;
+		cam.far = 100000f;
+		cam.near = 1f;
 		cam.update();
 
         characterCam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -75,7 +67,6 @@ public class TerrainDemo extends ApplicationAdapter {
 		camController = new CameraInputController(cam);
         camController.scrollFactor = -100f;
 
-        addSkybox();
         addAxes();
         addCharacter();
 
@@ -93,32 +84,12 @@ public class TerrainDemo extends ApplicationAdapter {
 		environment.set(new ColorAttribute(ColorAttribute.AmbientLight, 0.5f, 0.5f, 0.5f, 1f));
 		environment.add(new DirectionalLight().set(1, 1, 1f, -.4f, -0.4f, -0.2f));
         environment.set(new ColorAttribute(ColorAttribute.Fog, Color.SKY));
-		String prefix = "textures/elyvision/";
-		String ext = ".png";
-
-		cubemap = new Cubemap(Gdx.files.internal(prefix + "right" + ext),
-				Gdx.files.internal(prefix + "left" + ext),
-				Gdx.files.internal(prefix + "top" + ext),
-				Gdx.files.internal(prefix + "bottom" + ext),
-				Gdx.files.internal(prefix + "front" + ext),
-				Gdx.files.internal(prefix + "back" + ext));
-		environment.set(new CubemapAttribute(CubemapAttribute.EnvironmentMap, cubemap));
-
 
         modelBatch = new ModelBatch();
-        terrainBatch = new ModelBatch(new DefaultShaderProvider() {
-            @Override
-            protected Shader createShader(final Renderable renderable) {
-                return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
-            }
-        });
 
-		// create ortho camera for overlay
-		orthoCam = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		batch = new SpriteBatch();
 		buildCameraPath();
 		shapeRenderer = new ShapeRenderer();
-
 	}
 
 	@Override
@@ -127,12 +98,7 @@ public class TerrainDemo extends ApplicationAdapter {
 		cam.viewportHeight = Gdx.graphics.getHeight();
 		cam.update();
 
-		orthoCam.viewportHeight = height;
-		orthoCam.viewportWidth = width;
-		orthoCam.translate(width / 2, height / 2);
-		orthoCam.update();
-
-		batch.setProjectionMatrix(orthoCam.combined);
+        batch.getProjectionMatrix().setToOrtho2D(0,0,width, height);
 
 		gui.resize(width, height);
 	}
@@ -145,7 +111,8 @@ public class TerrainDemo extends ApplicationAdapter {
 		//camController.update();
         float delta = Gdx.graphics.getDeltaTime();
 		time += delta;
-		updateCamera(time);
+        if(gui.flyCamera)
+		    moveCameraAlongSpline(time);
 
         controller.update(delta);
         character.transform.getTranslation(pos);
@@ -162,31 +129,19 @@ public class TerrainDemo extends ApplicationAdapter {
 
         characterCam.update(true);
 
-        terrain.update(cam.position);
-
-
-        //character.transform.trn(characterCam.position.x, h, characterCam.position.z);
-
-        // avoid the camera going under the terrain
-//		float heightBelowCam = terrain.getHeight(cam.position.x, cam.position.z);
-//		if (cam.position.y < heightBelowCam + 10f)
-//			cam.position.y = heightBelowCam + 10f;
+        if(!gui.freezeLoD && gui.showTerrain)
+            terrain.update(cam);
 
 		// clear screen
         ScreenUtils.clear(Color.SKY, true);
 
 		modelBatch.begin(cam);
-		if (gui.showSkybox) {
-			modelBatch.render(skybox, environment);
-			Gdx.gl.glClear(GL20.GL_DEPTH_BUFFER_BIT);
-		}
         modelBatch.render(xyz);
         modelBatch.render(character, environment);
         modelBatch.end();
 
-        terrainBatch.begin(cam);
-        terrain.render(cam, terrainBatch, environment);
-        terrainBatch.end();
+        if(gui.showTerrain)
+            terrain.render(cam, environment);
 
         if(gui.showCameraPath)
 		    renderPath();
@@ -210,18 +165,6 @@ public class TerrainDemo extends ApplicationAdapter {
 	}
 
 
-	public void addSkybox() {
-
-        final float size = 150000f;
-
-        ModelBuilder modelBuilder = new ModelBuilder();
-        Model model = modelBuilder.createBox(size, size, size,
-            new Material(ColorAttribute.createDiffuse(Color.SKY),    // color signal shader provider for special shader
-                IntAttribute.createCullFace(GL20.GL_BACK)),     // don't cull back faces because we are viewing from inside the box
-            VertexAttributes.Usage.Position);
-        skybox = new ModelInstance(model);
-    }
-
     public void addAxes(){
         ModelBuilder modelBuilder = new ModelBuilder();
         Model xyzModel = modelBuilder.createXYZCoordinates(50f, new Material(),
@@ -244,16 +187,21 @@ public class TerrainDemo extends ApplicationAdapter {
 
 
 	private void buildCameraPath() {
-        float ht = 20000f;
-        float scl = 3f;
+        float ht = 2000f;
+        float scl = 16f;
 
 		Vector3[] controlPoints = {
 				new Vector3(-2000*scl, ht+400f*scl, 2000*scl),
 				new Vector3(2000*scl, ht+500*scl, 2500*scl),
 
-				new Vector3(2500*scl, ht+2600*scl, -3000*scl),
+				new Vector3(2500*scl, ht+800*scl, -3000*scl),
 
-				new Vector3(-1500*scl, ht+400*scl, -2400*scl)};
+				new Vector3(-1500*scl, ht+400*scl, -2400*scl),
+                new Vector3(-500*scl, ht+800*scl, -500*scl),
+
+                new Vector3(500*scl, ht+400*scl, 500*scl),
+
+        };
 		myCatmull = new CatmullRomSpline<Vector3>(controlPoints, true);
 
 		// fill array of points for debug render
@@ -266,14 +214,17 @@ public class TerrainDemo extends ApplicationAdapter {
 
 
 
-	private void updateCamera(float time) {
-		float t = 0.03f*time;
+	private void moveCameraAlongSpline(float time) {
+		float t = 0.015f*time;
 		if (t > 1)
 			t -= (int)t;
 		myCatmull.valueAt(tmp, t);
 		cam.position.set(tmp);
 		myCatmull.derivativeAt(tmp, t);
+        tmp.y = -0.8f;
+        tmp.nor();
 		cam.direction.set(tmp);
+        cam.up.set(Vector3.Y);
 		cam.update();
 	}
 

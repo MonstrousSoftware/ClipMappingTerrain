@@ -4,34 +4,29 @@
 
 // attributes of this vertex
 attribute vec4 a_position;
-attribute vec3 a_normal;
 
-//uniform sampler2D u_diffuseTexture;
+
 uniform sampler2D u_emissiveTexture;
 uniform mat4 u_worldTrans;
 uniform mat4 u_projViewTrans;
 uniform vec4 u_cameraPosition;
 
-varying vec4 v_normal;
 varying vec2 v_UV;
-varying vec4 v_heightSample;
 varying float v_fog;
 
 void main() {
 
 
-	v_normal =  vec4(a_normal, 1);
+	//v_normal =  vec4(a_normal, 1);
 	vec4 worldPos = u_worldTrans * a_position;
 
-    v_UV = (worldPos.xz / (8.0*16128.0))-vec2(0.5);
-    vec4 heightSample = texture2D(u_emissiveTexture, v_UV);
-    v_heightSample = heightSample;
+    v_UV = (worldPos.xz / (32512.0*4.0))+vec2(0.5);
+    float heightSample = (v_UV.x < 0 || v_UV.x > 1.0 || v_UV.y < 0 || v_UV.y > 1) ? 0.0 : texture2D(u_emissiveTexture, v_UV).a;
 
 
-	worldPos.y = 20000.0 * (heightSample.a - 0.5);
+	worldPos.y = 20000.0 * (heightSample - 0.5);
 	//worldPos.y = 8.0 * sin(worldPos.x/3.0) * cos(worldPos.z/2.0);
 
-    //rldPos.y = 0;
 
     vec3 flen = u_cameraPosition.xyz - worldPos.xyz;
     float fog = dot(flen, flen) * u_cameraPosition.w;

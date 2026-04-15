@@ -5,6 +5,9 @@ import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
+import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
+import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
+import com.badlogic.gdx.math.Frustum;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
@@ -12,13 +15,13 @@ import com.badlogic.gdx.utils.Disposable;
 
 public class Terrain implements Disposable {
     public GUI gui;
+    private final ModelBatch terrainBatch;
     public final int clipMapSize;   // should be 2^N-1, e.g. 127 or 63 (255 is too large for the indexing) = vertices per side
     public final int numLevels;
     public final float tileSize;
     public HeightMap heightMap;
-    public Texture grassTexture;
-    public Array<TerrainElement> elements = new Array<>();
-    //private final GridModelBuilder gridBuilder;
+    public final Array<TerrainElement> elements = new Array<>();
+    private final Array<ModelInstance> instances = new Array<>();
     private Model squareMxM;
     private Model fillerMX3;
     private Model filler3XM;
@@ -27,7 +30,7 @@ public class Terrain implements Disposable {
     private Model verticalTrim;
     private Model fringe;
     private Vector3 focus;
-    public boolean frustumCulling = false;
+    public boolean frustumCulling = true;
 
     /** Construct terrain.
      *
@@ -43,39 +46,37 @@ public class Terrain implements Disposable {
         this.tileSize = tileSize;
         //heightMap = new HeightMap(256); //clipMapSize+1);
         heightMap = new HeightMap(Gdx.files.internal("terrain/everest_2048_2048_16bit.png"));
-        //heightMap = new HeightMap(Gdx.files.internal("terrain/Rugged Terrain Height Map PNG.png"));
-
-//        // get ground texture, use mip mapping and allow repeat wrapping
-//        grassTexture = new Texture(Gdx.files.internal("Grass.png"), true);
-//        grassTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
-//        grassTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-
-
 
         focus = new Vector3();
 
-        generateBlocks(GL20.GL_LINES);
+        generateBlocks(GL20.GL_TRIANGLES);
 
         buildTerrain();
         Gdx.app.log("instances", ""+ elements.size);
+
+        terrainBatch = new ModelBatch(new DefaultShaderProvider() {
+            @Override
+            protected Shader createShader(final Renderable renderable) {
+                return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
+            }
+        });
     }
 
-    /** Generate terrain building block models. This can be called to change the appearance.
+    /** Generate terrain building block models. This can be called to change the appearance (e.g. wire frame mode).
      *
      * @param primitive GL_LINES or GL_TRIANGLES
      */
     public void generateBlocks(int primitive){
+        instances.clear();
         disposeBlocks();
         GridModelBuilder gridBuilder = new GridModelBuilder();
         final int N = clipMapSize;
         final int M = (N+1)/4;
 
-        //int primitive = GL20.GL_LINES;
-
         //Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/Rugged Terrain Diffuse PNG.png"), true);
         Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/everest_2048_2048_albedo_topo.png"), true);
         diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-        diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        diffuseTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
 
         Material mat = new Material(
             ColorAttribute.createDiffuse(Color.GREEN),
@@ -111,27 +112,40 @@ public class Terrain implements Disposable {
         frustumCulling = culling;
     }
 
-    /** update terrain to have the highest level of detail near the focal instance */
-    public void update(Vector3 focalPosition){
-        this.focus.set(focalPosition);
-        buildTerrain();
-    }
+    private final Vector3 previousCameraPosition = new Vector3();
 
-    public void render(Camera camera, ModelBatch modelBatch, Environment environment) {
+    /** update terrain to have the highest level of detail near the focal instance and perform frustum clipping */
+    public void update(Camera camera){
+        this.focus.set(camera.position);
+        // rebuild terrain if focal point has moved
+        if(instances.isEmpty() || focus.dst2(previousCameraPosition) > 0.1f)
+            buildTerrain();
 
-        if(frustumCulling) {
-            int count = 0;
+        // build list of visible model instances
+        // (camera may be in same position but rotated)
+        instances.clear();
+        if (frustumCulling) {
             for (TerrainElement element : elements) {
                 if (camera.frustum.boundsInFrustum(element.bbox)) {
-                    modelBatch.render(element.modelInstance, environment);
-                    count++;
+                    instances.add(element.modelInstance);
                 }
             }
         } else {
             for (TerrainElement element : elements)
-                modelBatch.render(element.modelInstance, environment);
+                instances.add(element.modelInstance);
         }
-        //Gdx.app.log("after culling", ""+count);
+
+        previousCameraPosition.set(focus);
+    }
+
+    public int getNumInstances(){
+        return instances.size;
+    }
+
+    public void render(Camera cam, Environment environment) {
+        terrainBatch.begin(cam);
+        terrainBatch.render(instances, environment);
+        terrainBatch.end();
     }
 
     public Texture getHeightMapTexture(){
@@ -142,54 +156,21 @@ public class Terrain implements Disposable {
         elements.clear();
         float scale = this.tileSize;
         for(int level = 0; level < this.numLevels; level++) {
-            makeTerrainLevel(level, scale );
+            buildTerrainLevel(level, this.numLevels, scale );
             scale *= 2f;
         }
     }
     /** Make one of the terrain levels. level 0 is smallest and finest level, level 1 is half the resolution, etc. */
-    private void makeTerrainLevel(int level, float scale) {
-
-        // todo heightmap should be sampled according to scale and position
-
-//        if(gui.showTerrainTexture) {
-//            addTexturedSquare(elements, scale);
-//            // todo ring
-//        }
-
-
-        // line raster for demonstration purposes
-        if (gui.showTerrain) {
-            addDebugRing(elements, scale);
-            if(level == 0)   // central square grid
-                addCentralSquare(elements, scale);
-            // fill the gap to the next level
+    private void buildTerrainLevel(int level, int numLevels, float scale) {
+        addRing(elements, scale);
+        if(level == 0)   // central square grid
+            addCentralSquare(elements, scale);
+        // fill the gap to the next level
+        if(level < numLevels -1)
             addTrim(elements, scale);
-        }
-
-    }
+     }
 
 
-
-//    private void addTexturedSquare(Array<TerrainElement> elements, float scale){
-//        float offset = scale/clipMapSize;   // world size of one tile
-//        Model model = gridBuilder.makeGridModel( clipMapSize, GL20.GL_TRIANGLES, new Material(TextureAttribute.createDiffuse(grassTexture)));
-//        ModelInstance instance = new ModelInstance(model, new Vector3(-offset, 0, -offset));
-//        instance.transform.scale(scale, 1f, scale);
-//        //elements.add(new TerrainElement(instance));
-//    }
-
-//    private void addDebugSquare(Array<TerrainElement> elements, float scale){
-//        final int N = clipMapSize;
-//        float xf = -(float)  (N-1) * scale/2f;
-//        float zf = -(float)  (N-1) * scale/2f;
-//        // snap to multiple of 2 tiles
-//        xf = 2 * scale * Math.round((focus.x+xf) / (2*scale));
-//        zf = 2 * scale * Math.round((focus.z+zf) / (2*scale));
-//
-//        addSquare(elements, gridModel, scale, N, N, xf, zf,  0, 0);
-//
-//        addSquare(elements, fringe, scale, N, N, xf, zf,  0, 0);
-//    }
 
     // scale is the size in world units of one tile at this level
     private void addCentralSquare(Array<TerrainElement> elements, float scale){
@@ -225,7 +206,7 @@ public class Terrain implements Disposable {
 
 
     // scale is the size in world units of one tile at this level
-    private void addDebugRing(Array<TerrainElement> elements, float scale){
+    private void addRing(Array<TerrainElement> elements, float scale){
         final int N = clipMapSize;
         final int M = (N+1)/4;
         // offset for corner of ring
@@ -307,9 +288,10 @@ public class Terrain implements Disposable {
         instance.transform.translate(xo + x * scale, 0, zo + z*scale);
         instance.transform.scale(scale, 1f, scale);
         BoundingBox bbox = new BoundingBox();
-        min.set(xo + x * scale, -100f, zo + z*scale);
+        float YSCALE = 10000f;  // worst case assumption of Y-scale of height map is [-YSCALE .. YSCALE]
+        min.set(xo + x * scale, -YSCALE, zo + z*scale);
         max.set(min);
-        max.add(scale * (w-1), 100f, scale*(h-1));
+        max.add(scale * (w-1), 2*YSCALE, scale*(h-1));
         bbox.set(min, max);
         elements.add(new TerrainElement(instance, bbox));
     }
@@ -318,6 +300,7 @@ public class Terrain implements Disposable {
     public void dispose() {
         heightMap.dispose();
         disposeBlocks();
+        terrainBatch.dispose();
     }
 
     private void disposeBlocks() {

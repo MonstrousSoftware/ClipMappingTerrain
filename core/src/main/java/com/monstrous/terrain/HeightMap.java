@@ -32,7 +32,7 @@ public class HeightMap implements Disposable {
         heightMapTexture = new Texture(pixmap, true);
         //heightMapTexture = new Texture(textureFile, true);
 
-        heightMapTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        heightMapTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
         heightMapTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         mapSize = heightMapTexture.getWidth();  // assumes a square
     }
@@ -44,7 +44,7 @@ public class HeightMap implements Disposable {
             pixmap = noise.generatePixmap(heightMap, mapSize);
 
             heightMapTexture = new Texture(pixmap);
-            heightMapTexture.setWrap(Texture.TextureWrap.MirroredRepeat, Texture.TextureWrap.MirroredRepeat);
+            heightMapTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
             heightMapTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         }
         return heightMapTexture;

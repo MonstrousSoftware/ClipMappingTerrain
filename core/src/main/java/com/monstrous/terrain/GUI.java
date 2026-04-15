@@ -16,12 +16,12 @@ public class GUI {
 
     public boolean showHeightmap = false;
 
+    public boolean freezeLoD = false;
     public boolean showTerrain = true;
-    public boolean showGrid = true;
-    public boolean culling = false;
-    public boolean showTerrainTexture = false;
-    public boolean showSkybox = false;
+    public boolean showWireFrame = false;
+    public boolean culling = true;
     public boolean showCameraPath = false;
+    public boolean flyCamera = true;
     public int gridsize = 16;
     public float xoffset = 0;
     public float yoffset = 0;
@@ -29,6 +29,7 @@ public class GUI {
   //  public float persistence = 0.45f;
     public float maxHeight = 600f;
     private Label fpsLabel;
+    private Label instancesLabel;
 
 
     public GUI ( TerrainDemo main ) {
@@ -63,26 +64,38 @@ public class GUI {
         });
         controls.add(checkbox).left().row();
 
-        final CheckBox gridCheckbox = new CheckBox("show terrain", skin);
-        gridCheckbox.setChecked(showTerrain);
-        gridCheckbox.addListener(new ChangeListener() {
+        final CheckBox terrainCheckbox = new CheckBox("show terrain", skin);
+        terrainCheckbox.setChecked(showTerrain);
+        terrainCheckbox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                showTerrain = gridCheckbox.isChecked();
+                showTerrain = terrainCheckbox.isChecked();
             }
         });
-        controls.add(gridCheckbox).left().row();
+        controls.add(terrainCheckbox).left().row();
 
-        final CheckBox linesCheckbox = new CheckBox("show as grid", skin);
-        linesCheckbox.setChecked(showTerrain);
+
+        final CheckBox linesCheckbox = new CheckBox("wire frame", skin);
+        linesCheckbox.setChecked(showWireFrame);
         linesCheckbox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                showGrid = linesCheckbox.isChecked();
-                main.terrain.generateBlocks(showGrid ? GL20.GL_LINES : GL20.GL_TRIANGLES);
+                showWireFrame = linesCheckbox.isChecked();
+                main.terrain.generateBlocks(showWireFrame ? GL20.GL_LINES : GL20.GL_TRIANGLES);
             }
         });
         controls.add(linesCheckbox).left().row();
+
+        final CheckBox freezeCheckbox = new CheckBox("freeze Level of Detail", skin);
+        freezeCheckbox.setChecked(freezeLoD);
+        freezeCheckbox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                freezeLoD = freezeCheckbox.isChecked();
+
+            }
+        });
+        controls.add(freezeCheckbox).left().row();
 
         final CheckBox cullingCheckbox = new CheckBox("frustum culling", skin);
         cullingCheckbox.setChecked(culling);
@@ -95,6 +108,16 @@ public class GUI {
         });
         controls.add(cullingCheckbox).left().row();
 
+        final CheckBox flyCheckbox = new CheckBox("fly camera", skin);
+        flyCheckbox.setChecked(flyCamera);
+        flyCheckbox.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                flyCamera = flyCheckbox.isChecked();
+            }
+        });
+        controls.add(flyCheckbox).left().row();
+
 //        final CheckBox terrainTextureCheckbox = new CheckBox("show terrain texture", skin);
 //        terrainTextureCheckbox.setChecked(showTerrainTexture);
 //        terrainTextureCheckbox.addListener(new ChangeListener() {
@@ -106,17 +129,7 @@ public class GUI {
 //        controls.add(terrainTextureCheckbox).left().row();
 
 
-        // show skybox
-        //
-        final CheckBox skyCheckbox = new CheckBox("skybox", skin);
-        skyCheckbox.setChecked(showSkybox);
-        skyCheckbox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                showSkybox = skyCheckbox.isChecked();
-            }
-        });
-        controls.add(skyCheckbox).left().row();
+
 
         final CheckBox camPathCheckbox = new CheckBox("camera spline", skin);
         camPathCheckbox.setChecked(showCameraPath);
@@ -128,10 +141,15 @@ public class GUI {
         });
         controls.add(camPathCheckbox).left().row();
 
-        controls.add(new Label("FPS: ", skin));
+        controls.add(new Label("FPS: ", skin)).left();
 
         fpsLabel = new Label("0", skin);
         controls.add(fpsLabel).left().row();
+
+        controls.add(new Label("ModelInstances: ", skin)).left();
+
+        instancesLabel = new Label("0", skin);
+        controls.add(instancesLabel).left().row();
 
         controls.pack();
         stage.addActor(controls);
@@ -267,6 +285,7 @@ public class GUI {
 
     public void render( float delta ) {
         fpsLabel.setText(Gdx.graphics.getFramesPerSecond());
+        instancesLabel.setText(main.terrain.getNumInstances());
         stage.act(delta);
         stage.draw();
     }
