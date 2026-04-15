@@ -6,6 +6,7 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
 public class GUI {
@@ -45,12 +46,18 @@ public class GUI {
 
     private void addActors() {
 
-        int yy = Gdx.graphics.getHeight() - 40;
-
-
-
         Table controls = new Table();
         controls.left();
+
+        controls.add(new Label("FPS: ", skin)).left();
+
+        fpsLabel = new Label("0", skin);
+        controls.add(fpsLabel).left().row();
+
+        controls.add(new Label("ModelInstances: ", skin)).left();
+
+        instancesLabel = new Label("0", skin);
+        controls.add(instancesLabel).left().row();
 
         // show heightmap
         //
@@ -141,17 +148,10 @@ public class GUI {
         });
         controls.add(camPathCheckbox).left().row();
 
-        controls.add(new Label("FPS: ", skin)).left();
 
-        fpsLabel = new Label("0", skin);
-        controls.add(fpsLabel).left().row();
-
-        controls.add(new Label("ModelInstances: ", skin)).left();
-
-        instancesLabel = new Label("0", skin);
-        controls.add(instancesLabel).left().row();
 
         controls.pack();
+        controls.setPosition(0,stage.getHeight()-controls.getHeight());
         stage.addActor(controls);
 
 

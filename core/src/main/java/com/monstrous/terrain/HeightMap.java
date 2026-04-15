@@ -1,6 +1,6 @@
 package com.monstrous.terrain;
 
-import com.badlogic.gdx.Gdx;
+
 import com.badlogic.gdx.files.FileHandle;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
@@ -25,12 +25,10 @@ public class HeightMap implements Disposable {
         heightMap = noise.generateSmoothedPerlinMap(mapSize, mapSize, 0,0, PERLIN_GRID_SIZE);
     }
 
-    /** Create height map from grey scale texture */
+    /** Create height map from grey scale texture file (should be 16 bits greyscale) */
     public HeightMap(FileHandle textureFile) {
-        //pixmap = new Pixmap(2048, 2048, Pixmap.Format.RGBA8888);
         pixmap = new Pixmap(textureFile);
         heightMapTexture = new Texture(pixmap, true);
-        //heightMapTexture = new Texture(textureFile, true);
 
         heightMapTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
         heightMapTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
