@@ -26,10 +26,9 @@ public class TerrainDemo extends ApplicationAdapter {
     public Terrain terrain;
     private Model cube;
     private ModelBatch modelBatch;
-
-	CatmullRomSpline<Vector3> myCatmull;
-	ShapeRenderer shapeRenderer;
-	float time;
+	private CatmullRomSpline<Vector3> myCatmull;
+	private ShapeRenderer shapeRenderer;
+	private float time;
 	private final Vector3 tmp = new Vector3();
 	private final Vector3[] pathPoints = new Vector3[100];	// to render spline (debug)
     private Array<ModelInstance> vegetation;   // to show placement at terrain height
@@ -40,7 +39,7 @@ public class TerrainDemo extends ApplicationAdapter {
 
         gui = new GUI(this);
 
-        terrain = new Terrain(gui, 255, 7, 32f);
+        terrain = new Terrain(255, 7, 32f);
 
         generateVegetation(terrain);
 
@@ -111,6 +110,7 @@ public class TerrainDemo extends ApplicationAdapter {
         if(gui.showCameraPath)
 		    renderPath();
 
+        // enable this to demonstrate we can get accurate terrain height by placing blocks on the terrain
         //renderVegetation();
 
 		if (gui.showHeightmap) {

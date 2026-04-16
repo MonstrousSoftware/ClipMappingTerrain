@@ -13,7 +13,6 @@ import com.badlogic.gdx.utils.Disposable;
 import com.monstrous.terrain.GUI;
 
 public class Terrain implements Disposable {
-    public GUI gui;
     private final ModelBatch terrainBatch;
     public final int clipMapSize;   // should be 2^N-1, e.g. 127 or 63 (255 is too large for the indexing) = vertices per side
     public final int numLevels;
@@ -34,13 +33,12 @@ public class Terrain implements Disposable {
 
     /** Construct terrain.
      *
-     * @param gui
      * @param clipMapSize size of each LoD level's grid (in vertices). Should be power of two minus one, e.g. 63. Max is 1023.
      * @param numLevels number of LoD levels, i.e. concentric rings
      * @param tileSize size of a single tile in world units
      */
-    public Terrain(GUI gui, int clipMapSize, int numLevels, float tileSize) {
-        this.gui = gui;
+    public Terrain(int clipMapSize, int numLevels, float tileSize) {
+
         this.clipMapSize = clipMapSize;
         this.numLevels = numLevels;
         this.tileSize = tileSize;
