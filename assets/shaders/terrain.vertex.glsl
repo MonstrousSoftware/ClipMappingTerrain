@@ -1,6 +1,3 @@
-// shader to set the colour of each face equal to its normal vector
-// (in negative direction the faces are black)
-
 
 // attributes of this vertex
 attribute vec4 a_position;
@@ -16,15 +13,17 @@ varying float v_fog;
 
 void main() {
 
-
-	//v_normal =  vec4(a_normal, 1);
 	vec4 worldPos = u_worldTrans * a_position;
 
-    v_UV = (worldPos.xz / (32512.0*4.0))+vec2(0.5);
+    // todo these should be uniforms
+    float terrainWorldSize = 254.0 * 128.0 * 4.0;
+
+    // offset by 0.5 because terrain is centred on origin
+    v_UV = (worldPos.xz / terrainWorldSize) + vec2(0.5);
     float heightSample = (v_UV.x < 0.0 || v_UV.x > 1.0 || v_UV.y < 0.0 || v_UV.y > 1.0) ? 0.0 : texture2D(u_emissiveTexture, v_UV).a;
 
 
-	worldPos.y = 20000.0 * (heightSample - 0.5);
+	worldPos.y = 25600.0 * (heightSample -0.5f);
 	//worldPos.y = 8.0 * sin(worldPos.x/3.0) * cos(worldPos.z/2.0);
 
 

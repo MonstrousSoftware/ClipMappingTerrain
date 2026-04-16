@@ -8,10 +8,11 @@ https://developer.nvidia.com/gpugems/gpugems2/part-i-geometric-complexity/chapte
 
 
 The terrain is rendered as a set of concentric regular grids with decreasing granularity.
-The y-position of each vertex is read from a height texture by the vertex shader.
+The y-position displacement for each vertex is read from a height texture by the vertex shader.
 
-Sample height map of Everest from https://manticorp.github.io/unrealheightmap.
-The height map is a 16 bit grey scale png of 2048 by 2048.
+Sample height map of Everest courtesy of https://manticorp.github.io/unrealheightmap.
+The height map is an 8 bit grey scale png of 2048 by 2048.
+(LibGDX doesn't support 16-bit grey scale and will truncate such a file to 8 bits per pixel).
 
 
 ## Platforms

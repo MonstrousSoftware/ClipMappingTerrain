@@ -13,6 +13,7 @@ import com.badlogic.gdx.graphics.g3d.utils.*;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.CatmullRomSpline;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.monstrous.terrain.terrain.Terrain;
 
@@ -23,12 +24,15 @@ public class TerrainDemo extends ApplicationAdapter {
 	public SpriteBatch batch;
 	public GUI gui;
     public Terrain terrain;
+    private Model cube;
+    private ModelBatch modelBatch;
 
 	CatmullRomSpline<Vector3> myCatmull;
 	ShapeRenderer shapeRenderer;
 	float time;
 	private final Vector3 tmp = new Vector3();
 	private final Vector3[] pathPoints = new Vector3[100];	// to render spline (debug)
+    private Array<ModelInstance> vegetation;   // to show placement at terrain height
 
 
 	@Override
@@ -38,11 +42,13 @@ public class TerrainDemo extends ApplicationAdapter {
 
         terrain = new Terrain(gui, 255, 7, 32f);
 
+        generateVegetation(terrain);
+
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		cam.position.set(0, 20000, 0);
 		cam.lookAt(0, 0, 0);
-		cam.far = 100000f;
+		cam.far = 10000000f;
 		cam.near = 10f;
 		cam.update();
 
@@ -59,6 +65,8 @@ public class TerrainDemo extends ApplicationAdapter {
 		// define some lighting
 		environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.Fog, Color.SKY));
+
+        modelBatch = new ModelBatch();
 
 		batch = new SpriteBatch();
 		buildCameraPath();
@@ -87,6 +95,10 @@ public class TerrainDemo extends ApplicationAdapter {
         else
             cam.lookAt(0, 0, 0);
 
+//        float height = terrain.getHeight(cam.position.x, cam.position.z);
+//        if(height + 10f > cam.position.y)
+//            cam.position.y = height + 10f;
+
         if(!gui.freezeLoD && gui.showTerrain)
             terrain.update(cam);
 
@@ -99,9 +111,11 @@ public class TerrainDemo extends ApplicationAdapter {
         if(gui.showCameraPath)
 		    renderPath();
 
+        //renderVegetation();
+
 		if (gui.showHeightmap) {
 			batch.begin();
-			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-256, 0, 256, 256);
+			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
 			batch.end();
 		}
 		gui.render(Gdx.graphics.getDeltaTime());
@@ -112,6 +126,8 @@ public class TerrainDemo extends ApplicationAdapter {
 		batch.dispose();
         terrain.dispose();
         gui.dispose();
+        cube.dispose();
+        modelBatch.dispose();
 	}
 
 	private void buildCameraPath() {
@@ -140,6 +156,30 @@ public class TerrainDemo extends ApplicationAdapter {
 		}
 	}
 
+    private void generateVegetation(Terrain terrain){
+        ModelBuilder builder = new ModelBuilder();
+        float SZ = 250f;
+        cube = builder.createBox(SZ, SZ, SZ, new Material(ColorAttribute.createDiffuse(Color.CYAN)),
+            VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
+
+        final int N = 100;
+        final float worldSize = 130000f;  // terrain.worldSize / 8.128 ??
+        vegetation = new Array<>();
+
+        for(int i = 0; i < N; i++){
+            float x = ((float)Math.random() -0.5f) * worldSize;
+            float z = ((float)Math.random() -0.5f) * worldSize;
+            float h = 5f + terrain.getHeight(x, z);
+            vegetation.add( new ModelInstance(cube, x, h, z));
+        }
+
+    }
+
+    private void renderVegetation(){
+        modelBatch.begin(cam);
+        modelBatch.render(vegetation);
+        modelBatch.end();
+    }
 
 
 	private void moveCameraAlongSpline(float time) {

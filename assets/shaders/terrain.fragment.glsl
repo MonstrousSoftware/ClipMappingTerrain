@@ -12,7 +12,7 @@ void main() {
     vec4 diffuse = texture2D(u_diffuseTexture, v_UV);
 
     gl_FragColor = diffuse;
-    gl_FragColor.rgb = mix(gl_FragColor.rgb, u_fogColor.rgb, v_fog);
+    //gl_FragColor.rgb = mix(gl_FragColor.rgb, u_fogColor.rgb, v_fog);
 
     //gl_FragColor.rgb = vec3(v_UV.r, v_UV.g, 0.0);
 }

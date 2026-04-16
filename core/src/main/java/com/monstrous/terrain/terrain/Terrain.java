@@ -18,6 +18,7 @@ public class Terrain implements Disposable {
     public final int clipMapSize;   // should be 2^N-1, e.g. 127 or 63 (255 is too large for the indexing) = vertices per side
     public final int numLevels;
     public final float tileSize;
+    public final float worldSize;   // world size of terrain, centered on the origin
     public HeightMap heightMap;
     public final Array<TerrainElement> elements = new Array<>();
     private final Array<ModelInstance> instances = new Array<>();
@@ -43,8 +44,9 @@ public class Terrain implements Disposable {
         this.clipMapSize = clipMapSize;
         this.numLevels = numLevels;
         this.tileSize = tileSize;
+        this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
         //heightMap = new HeightMap(256); //clipMapSize+1);
-        heightMap = new HeightMap(Gdx.files.internal("terrain/everest_2048_2048_16bit.png"));
+        heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
         focus = new Vector3();
 
@@ -59,6 +61,17 @@ public class Terrain implements Disposable {
                 return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
             }
         });
+    }
+
+
+    public float getHeight(float worldX, float worldZ){
+        float worldSize = 254f * 128f * 4f;     // to match hard coded value in vertex shader
+        // scale [-0.5*worldSize .. 0.5*worldSize] to [0 .. 1]
+        float u = (worldX / worldSize) + 0.5f;
+        float v = (worldZ / worldSize) + 0.5f;
+        if(u < 0 || u > 1f || v < 0 || v > 1f)
+            return 25600;
+        return 100f * (heightMap.get(u, v) - 128);
     }
 
     /** Generate terrain building block models. This can be called to change the appearance (e.g. wire frame mode).

@@ -163,6 +163,7 @@ public class Noise {
     // from tests/g3d/voxel/PerlinNoiseGenerator.java
     public Pixmap generatePixmap (float [][] map, int size) {
 
+        // todo use format Alpha
         Pixmap pixmap = new Pixmap(size, size, Pixmap.Format.RGBA8888);
         int idx = 0;
         for(int y = 0; y < size; y++) {
