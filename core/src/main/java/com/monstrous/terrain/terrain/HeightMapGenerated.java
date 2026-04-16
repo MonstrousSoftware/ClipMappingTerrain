@@ -1,13 +1,12 @@
 package com.monstrous.terrain.terrain;
 
 
-import com.badlogic.gdx.files.FileHandle;
+
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.utils.Disposable;
 
-import java.nio.ByteBuffer;
-
+// BROKEN?
 
 public class HeightMapGenerated implements HeightMap, Disposable {
     final int PERLIN_GRID_SIZE = 16;

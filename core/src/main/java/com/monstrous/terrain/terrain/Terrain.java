@@ -10,13 +10,16 @@ import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
-import com.monstrous.terrain.GUI;
+
+
+// todo Terrain and the terrain shaders share some magic constants, e.g. world size. Should be uniforms.
+// also means the Terrain constructor parameters are not fully honoured.
 
 public class Terrain implements Disposable {
     private final ModelBatch terrainBatch;
-    public final int clipMapSize;   // should be 2^N-1, e.g. 127 or 63 (255 is too large for the indexing) = vertices per side
-    public final int numLevels;
-    public final float tileSize;
+    public final int clipMapSize;   // should be 2^N-1, e.g. 63 or 127  = vertices per side
+    public final int numLevels;     // number of LOD levels
+    public final float tileSize;    // size of one grid tile in world units
     public final float worldSize;   // world size of terrain, centered on the origin
     public HeightMap heightMap;
     public final Array<TerrainElement> elements = new Array<>();
@@ -43,7 +46,7 @@ public class Terrain implements Disposable {
         this.numLevels = numLevels;
         this.tileSize = tileSize;
         this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
-        //heightMap = new HeightMap(256); //clipMapSize+1);
+        //heightMap = new HeightMapGenerated(2048); //clipMapSize+1);
         heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
         focus = new Vector3();
@@ -296,6 +299,7 @@ public class Terrain implements Disposable {
         instance.transform.translate(xo + x * scale, 0, zo + z*scale);
         instance.transform.scale(scale, 1f, scale);
         BoundingBox bbox = new BoundingBox();
+
         float YSCALE = 10000f;  // worst case assumption of Y-scale of height map is [-YSCALE .. YSCALE], depends on height map
         min.set(xo + x * scale, -YSCALE, zo + z*scale);
         max.set(min);
