@@ -32,6 +32,7 @@ public class GUI {
     private float amplitude;
     private Label scaleLabel;
     private float scale;
+    private int numLevels;
 
 
     public GUI ( TerrainDemo main, Terrain terrain ) {

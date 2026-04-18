@@ -131,6 +131,7 @@ public class TerrainDemo extends ApplicationAdapter {
         modelBatch.dispose();
 	}
 
+    // not guaranteed to not collide into terrain
 	private void buildCameraPath() {
         float ht = 0.5f*terrain.getAmplitude();
         float scl = 16f;
@@ -157,6 +158,8 @@ public class TerrainDemo extends ApplicationAdapter {
 		}
 	}
 
+    // randomly place little cubes on the terrain to demonstrate we can get terrain height correctly
+    // call again whenever terrain scale or amplitude is changed
     public void generateVegetation(Terrain terrain){
         ModelBuilder builder = new ModelBuilder();
         float SZ = 250f;

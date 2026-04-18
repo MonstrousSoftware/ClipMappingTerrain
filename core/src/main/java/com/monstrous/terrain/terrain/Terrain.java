@@ -4,7 +4,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
-import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.math.collision.BoundingBox;
@@ -17,10 +16,10 @@ import com.badlogic.gdx.utils.Disposable;
 
 public class Terrain implements Disposable {
     private final ModelBatch terrainBatch;
-    public final int clipMapSize;   // should be 2^N-1, e.g. 63 or 127  = vertices per side
-    public final int numLevels;     // number of LOD levels
-    public final float tileSize;    // size of one grid tile in world units
-    public final float worldSize;   // world size of terrain, centered on the origin
+    public int clipMapSize;   // should be 2^N-1, e.g. 63 or 127  = vertices per side
+    public int numLevels;     // number of LOD levels
+    public float tileSize;    // size of one grid tile in world units
+    public float worldSize;   // world size of terrain, centered on the origin
     public HeightMap heightMap;
     public final Array<TerrainElement> elements = new Array<>();
     private final Array<ModelInstance> instances = new Array<>();
@@ -31,7 +30,7 @@ public class Terrain implements Disposable {
     private Model horizontalTrim;
     private Model verticalTrim;
     private Model fringe;
-    private final Vector3 focus;
+    private final Vector3 focus = new Vector3();
     public boolean frustumCulling = true;
     private final TerrainShader terrainShader;
     private float amplitude;
@@ -45,22 +44,15 @@ public class Terrain implements Disposable {
      */
     public Terrain(int clipMapSize, int numLevels, float tileSize) {
 
-        this.clipMapSize = clipMapSize;
-        this.numLevels = numLevels;
-        this.tileSize = tileSize;
-        this.scale = 2*tileSize;    // hmm...
-        this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
+
+        this.scale = 64;    // hmm...
         this.amplitude = 25600;
 
         //heightMap = new HeightMapGenerated(2048); //clipMapSize+1);
         heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
-        focus = new Vector3();
 
-        generateBlocks(GL20.GL_TRIANGLES);
-
-        buildTerrain();
-        Gdx.app.log("instances", ""+ elements.size);
+        setClipMapParameters(clipMapSize, numLevels, tileSize);
 
         // to create a shader we need a renderable
         // use the renderable from the first terrain element
@@ -76,6 +68,19 @@ public class Terrain implements Disposable {
             }
         });
     }
+
+    public void setClipMapParameters(int clipMapSize, int numLevels, float tileSize) {
+
+        this.clipMapSize = clipMapSize;
+        this.numLevels = numLevels;
+        this.tileSize = tileSize;
+        this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
+
+        generateBlocks(GL20.GL_TRIANGLES);
+        buildTerrain();
+        Gdx.app.log("instances", ""+ elements.size);
+    }
+
 
 
     public float getHeight(float worldX, float worldZ){
