@@ -164,7 +164,6 @@ public class TerrainDemo extends ApplicationAdapter {
 
         final int N = 1000;
         final float worldSize = terrain.heightMap.getSize() * terrain.terrainShader.getScale();
-        //130000f;  // terrain.worldSize / 8.128 ??
         vegetation = new Array<>();
 
         for(int i = 0; i < N; i++){
@@ -173,7 +172,6 @@ public class TerrainDemo extends ApplicationAdapter {
             float h = 5f + terrain.getHeight(x*0.9f, z*0.9f);
             vegetation.add( new ModelInstance(cube, x*0.9f, h, z*0.9f));
         }
-
     }
 
     private void renderVegetation(){

@@ -81,8 +81,8 @@ public class Terrain implements Disposable {
         float u = (worldX / worldSize) + 0.5f;
         float v = (worldZ / worldSize) + 0.5f;
         if(u < 0 || u > 1f || v < 0 || v > 1f)
-            return 25600;
-        return 100f * (heightMap.get(u, v) - 128);
+            return 0;
+        return amplitude * heightMap.get(u, v);
     }
 
     /** set terrain amplitude, i.e. height multiplication factor */

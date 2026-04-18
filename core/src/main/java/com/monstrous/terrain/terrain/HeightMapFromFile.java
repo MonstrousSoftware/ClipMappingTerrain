@@ -33,8 +33,6 @@ public class HeightMapFromFile implements HeightMap, Disposable {
         heightMapTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
         heightMapTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
         mapSize = heightMapTexture.getWidth();  // assumes a square
-
-        float h = get(0f, 0f);
     }
 
     public Texture getHeightMapTexture(){
@@ -46,14 +44,16 @@ public class HeightMapFromFile implements HeightMap, Disposable {
         return mapSize;
     }
 
-    /** get height at position (u, v). Coordinates must be in range [0.0 to 1.0]. */
+    /** get height at position (u, v). Coordinates must be in range [0.0 to 1.0].
+     * Height will be in range [-0.5 .. 0.5], scale appropriately*/
     public float get(float u, float v){
         int x = Math.round(u * mapSize);
         int z = Math.round(v * mapSize);
+        x = Math.min(x, mapSize-1);
+        z = Math.min(z, mapSize-1);
 
         int hi = heightData[z*mapSize+x] & 0xFF;
-        float h = hi;
-        return h;
+        return hi/255f - 0.5f;
     }
 
     @Override
