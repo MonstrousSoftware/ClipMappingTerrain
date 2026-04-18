@@ -8,12 +8,13 @@ import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+import com.monstrous.terrain.terrain.Terrain;
 
 public class GUI {
 
     public Stage stage;
     public Skin skin;
-    public TerrainDemo main;
+    public Terrain terrain;
 
     public boolean showHeightmap = false;
 
@@ -24,14 +25,15 @@ public class GUI {
     public boolean showCameraPath = false;
     public boolean flyCamera = true;
     public int gridsize = 16;
-    public float maxHeight = 600f;
     private Label fpsLabel;
     private Label instancesLabel;
+    private Label ampLabel;
+    private float amplitude;
 
 
-    public GUI ( TerrainDemo main ) {
+    public GUI ( Terrain terrain ) {
 
-        this.main = main;
+        this.terrain = terrain;
 
         // GUI elements via Stage class
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
@@ -84,7 +86,7 @@ public class GUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 showWireFrame = linesCheckbox.isChecked();
-                main.terrain.generateBlocks(showWireFrame ? GL20.GL_LINES : GL20.GL_TRIANGLES);
+                terrain.generateBlocks(showWireFrame ? GL20.GL_LINES : GL20.GL_TRIANGLES);
             }
         });
         controls.add(linesCheckbox).left().row();
@@ -106,7 +108,7 @@ public class GUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 culling = cullingCheckbox.isChecked();
-                main.terrain.setCulling(culling);
+                terrain.setCulling(culling);
             }
         });
         controls.add(cullingCheckbox).left().row();
@@ -131,6 +133,29 @@ public class GUI {
             }
         });
         controls.add(camPathCheckbox).left().row();
+
+
+
+        // amplitude
+        amplitude = terrain.terrainShader.getAmplitude();
+        final Slider ampSlider = new Slider(0f, 50000f, 100f, false, skin);
+        ampSlider.setAnimateDuration(0.1f);
+        ampSlider.setValue(amplitude);
+        ampSlider.setSize(150, 20);
+        controls.add(ampSlider);
+        controls.add(new Label("amplitude", skin));
+        ampLabel = new Label(String.valueOf(amplitude), skin);
+        controls.add(ampLabel);
+        ampSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                amplitude = ampSlider.getValue();
+                ampLabel.setText(String.valueOf((int)amplitude));
+                terrain.terrainShader.setAmplitude(amplitude);
+
+            }
+        });
+
 
 
 
@@ -231,28 +256,7 @@ public class GUI {
 //        });
 //        yy-= 30;
 //
-//        // amplitude
-//        final Slider maxSlider = new Slider(1f, 500f, 10f, false, skin);
-//        maxSlider.setAnimateDuration(0.1f);
-//        maxSlider.setValue(maxHeight);
-//        maxSlider.setSize(150, 20);
-//        maxSlider.setPosition(100, yy);
-//        stage.addActor(maxSlider);
-//        final Label label7 = new Label("amplitude", skin);
-//        label7.setPosition(0, yy);
-//        stage.addActor(label7);
-//        final Label label8 = new Label(String.valueOf(maxHeight), skin);
-//        label8.setPosition(0, yy+20);
-//        stage.addActor(label8);
-//        maxSlider.addListener(new ChangeListener() {
-//            @Override
-//            public void changed(ChangeEvent event, Actor actor) {
-//                maxHeight = maxSlider.getValue();
-//                label8.setText(String.valueOf(maxHeight));
-//                refresh();
-//            }
-//        });
-//        yy-= 30;
+
 
 
     }
@@ -269,7 +273,7 @@ public class GUI {
 
     public void render( float delta ) {
         fpsLabel.setText(Gdx.graphics.getFramesPerSecond());
-        instancesLabel.setText(main.terrain.getNumInstances());
+        instancesLabel.setText(terrain.getNumInstances());
         stage.act(delta);
         stage.draw();
     }

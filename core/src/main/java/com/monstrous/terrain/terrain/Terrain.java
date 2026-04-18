@@ -33,6 +33,7 @@ public class Terrain implements Disposable {
     private Model fringe;
     private final Vector3 focus;
     public boolean frustumCulling = true;
+    public TerrainShader terrainShader;
 
     /** Construct terrain.
      *
@@ -56,11 +57,16 @@ public class Terrain implements Disposable {
         buildTerrain();
         Gdx.app.log("instances", ""+ elements.size);
 
+        // to create a shader we need a renderable
+        // use the renderable from the first terrain element
+        Renderable renderable = new Renderable();
+        elements.get(0).modelInstance.getRenderable(renderable);
+
+        terrainShader = new TerrainShader(renderable, heightMap.getSize(), 2*tileSize, 20000f);
         terrainBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(final Renderable renderable) {
-                return new TerrainShader(renderable);
-
+                return terrainShader;
             }
         });
     }
@@ -122,6 +128,12 @@ public class Terrain implements Disposable {
     /** Enable frustum culling for better performance */
     public void setCulling(boolean culling){
         frustumCulling = culling;
+    }
+
+
+    /** set terrain amplitude, i.e. height multiplication factor */
+    public void setAmplitude(float amplitude){
+
     }
 
     private final Vector3 previousCameraPosition = new Vector3();
