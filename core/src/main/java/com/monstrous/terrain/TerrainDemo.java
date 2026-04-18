@@ -47,7 +47,8 @@ public class TerrainDemo extends ApplicationAdapter {
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		cam.position.set(0, 20000, 0);
 		cam.lookAt(0, 0, 0);
-		cam.far = 10000000f;
+        // far distance is world distance of diagonal over height map
+		cam.far = (float)Math.sqrt(2f)*terrain.heightMap.getSize() * terrain.getScale();
 		cam.near = 10f;
 		cam.update();
 
@@ -131,7 +132,7 @@ public class TerrainDemo extends ApplicationAdapter {
 	}
 
 	private void buildCameraPath() {
-        float ht = 2000f;
+        float ht = 0.5f*terrain.getAmplitude();
         float scl = 16f;
 
 		Vector3[] controlPoints = {
@@ -159,11 +160,11 @@ public class TerrainDemo extends ApplicationAdapter {
     public void generateVegetation(Terrain terrain){
         ModelBuilder builder = new ModelBuilder();
         float SZ = 250f;
-        cube = builder.createBox(SZ, SZ, SZ, new Material(ColorAttribute.createDiffuse(Color.RED)),
+        cube = builder.createBox(SZ, SZ, SZ, new Material(ColorAttribute.createDiffuse(Color.BROWN)),
             VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
         final int N = 1000;
-        final float worldSize = terrain.heightMap.getSize() * terrain.terrainShader.getScale();
+        final float worldSize = terrain.heightMap.getSize() * terrain.getScale();
         vegetation = new Array<>();
 
         for(int i = 0; i < N; i++){

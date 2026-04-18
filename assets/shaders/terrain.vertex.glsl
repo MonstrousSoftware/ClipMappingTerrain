@@ -16,11 +16,8 @@ varying vec2 v_UV;
 varying float v_fog;
 
 void main() {
-
 	vec4 worldPos = u_worldTrans * a_position;
 
-    // todo these should be uniforms
-    //float terrainWorldSize = 2048.0 * 64.0; //254.0 * 128.0 * 4.0;
     float terrainWorldSize = u_heightMapSize * u_scale;
 
     // offset by 0.5 because terrain is centred on origin
@@ -28,7 +25,7 @@ void main() {
     float heightSample = (v_UV.x < 0.0 || v_UV.x > 1.0 || v_UV.y < 0.0 || v_UV.y > 1.0) ? 0.0 : texture2D(u_emissiveTexture, v_UV).a;
 
 
-	worldPos.y = u_amplitude * (heightSample -0.5f);
+	worldPos.y = u_amplitude * heightSample;
 	//worldPos.y = 8.0 * sin(worldPos.x/3.0) * cos(worldPos.z/2.0);
 
 

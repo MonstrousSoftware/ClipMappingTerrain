@@ -33,8 +33,9 @@ public class Terrain implements Disposable {
     private Model fringe;
     private final Vector3 focus;
     public boolean frustumCulling = true;
-    public TerrainShader terrainShader;
+    private final TerrainShader terrainShader;
     private float amplitude;
+    private float scale;        // world scale of one height map tile (not clip map tile)
 
     /** Construct terrain.
      *
@@ -47,6 +48,7 @@ public class Terrain implements Disposable {
         this.clipMapSize = clipMapSize;
         this.numLevels = numLevels;
         this.tileSize = tileSize;
+        this.scale = 2*tileSize;    // hmm...
         this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
         this.amplitude = 25600;
 
@@ -64,8 +66,9 @@ public class Terrain implements Disposable {
         // use the renderable from the first terrain element
         Renderable renderable = new Renderable();
         elements.get(0).modelInstance.getRenderable(renderable);
+        renderable.environment = new Environment();     // force lighting so that fog will work
 
-        terrainShader = new TerrainShader(renderable, heightMap.getSize(), 2*tileSize, amplitude);
+        terrainShader = new TerrainShader(renderable, heightMap.getSize(), scale, amplitude);
         terrainBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(final Renderable renderable) {
@@ -76,7 +79,7 @@ public class Terrain implements Disposable {
 
 
     public float getHeight(float worldX, float worldZ){
-        float worldSize = 254f * 128f * 4f;     // to match hard coded value in vertex shader
+        float worldSize = heightMap.getSize() * scale;
         // scale [-0.5*worldSize .. 0.5*worldSize] to [0 .. 1]
         float u = (worldX / worldSize) + 0.5f;
         float v = (worldZ / worldSize) + 0.5f;
@@ -94,6 +97,17 @@ public class Terrain implements Disposable {
     public float getAmplitude() {
         return amplitude;
     }
+
+    public void setScale(float scale) {
+        this.scale = scale;
+        terrainShader.setScale(scale);
+    }
+
+    public float getScale() {
+        return scale;
+    }
+
+
 
     /** Generate terrain building block models. This can be called to change the appearance (e.g. wire frame mode).
      *
@@ -323,10 +337,9 @@ public class Terrain implements Disposable {
         instance.transform.scale(scale, 1f, scale);
         BoundingBox bbox = new BoundingBox();
 
-        float YSCALE = 10000f;  // worst case assumption of Y-scale of height map is [-YSCALE .. YSCALE], depends on height map
-        min.set(xo + x * scale, -YSCALE, zo + z*scale);
+        min.set(xo + x * scale, 0, zo + z*scale);
         max.set(min);
-        max.add(scale * (w-1), 2*YSCALE, scale*(h-1));
+        max.add(scale * (w-1), amplitude, scale*(h-1));
         bbox.set(min, max);
         elements.add(new TerrainElement(instance, bbox));
     }

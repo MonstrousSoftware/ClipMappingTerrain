@@ -163,7 +163,7 @@ public class GUI {
         });
 
         // scale
-        scale = terrain.terrainShader.getScale();
+        scale = terrain.getScale();
         final Slider scaleSlider = new Slider(0f, 256f, 1f, false, skin);
         scaleSlider.setAnimateDuration(0.1f);
         scaleSlider.setValue(scale);
@@ -178,7 +178,8 @@ public class GUI {
             public void changed(ChangeEvent event, Actor actor) {
                 scale = scaleSlider.getValue();
                 scaleLabel.setText(String.valueOf(scale));
-                terrain.terrainShader.setScale(scale);
+                terrain.setScale(scale);
+                main.generateVegetation(terrain);
 
             }
         });

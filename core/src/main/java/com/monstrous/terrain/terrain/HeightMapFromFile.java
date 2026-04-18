@@ -45,15 +45,15 @@ public class HeightMapFromFile implements HeightMap, Disposable {
     }
 
     /** get height at position (u, v). Coordinates must be in range [0.0 to 1.0].
-     * Height will be in range [-0.5 .. 0.5], scale appropriately*/
+     * Height will be in range [-0 .. 1], scale appropriately*/
     public float get(float u, float v){
         int x = Math.round(u * mapSize);
         int z = Math.round(v * mapSize);
-        x = Math.min(x, mapSize-1);
+        x = Math.min(x, mapSize-1); // clamp to prevent overflow
         z = Math.min(z, mapSize-1);
 
-        int hi = heightData[z*mapSize+x] & 0xFF;
-        return hi/255f - 0.5f;
+        int hi = heightData[z*mapSize+x] & 0xFF;    // interpret as unsigned byte
+        return hi/255f;
     }
 
     @Override

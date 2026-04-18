@@ -68,7 +68,6 @@ public class TerrainShader extends DefaultShader {
     // called once
     @Override
     public void init() {
-        Gdx.app.log("terrainshader", "init");
         super.init();
 
         // get locations of specific uniforms to use later
