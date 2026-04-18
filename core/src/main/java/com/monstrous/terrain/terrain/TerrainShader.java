@@ -8,14 +8,15 @@ import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 
 /** By creating a dedicated TerrainShade class we can add some relevant uniforms */
 public class TerrainShader extends DefaultShader {
-
+    // terrain parameters
+    private int heightMapSize;  // dimension of height map in vertices per side
+    private float scale; // horizontal scale of one height map texel
+    private float amplitude; // height multiplication factor
     // uniform locations
     private int u_heightMapSize;
     private int u_scale;
     private int u_amplitude;
-    private int heightMapSize;
-    private float scale;
-    private float amplitude;
+
 
     /** Simple constructor that uses some default settings. Use setXXX() to
      * set terrain parameters.
@@ -24,8 +25,9 @@ public class TerrainShader extends DefaultShader {
         this(renderable, 2048, 64, 25600);
     }
 
-    /** Constructor that includes the terrain parameters. */
-    // todo can be changed when?
+    /** Constructor that includes the terrain parameters.
+     * Terrain parameters can be changed at every frame via the setXXX() methods
+     * */
     public TerrainShader(Renderable renderable, int heightMapSize, float scale, float amplitude) {
         super(renderable, new DefaultShader.Config(
             Gdx.files.internal("shaders/terrain.vertex.glsl").readString(),
@@ -42,6 +44,10 @@ public class TerrainShader extends DefaultShader {
 
     public void setScale(float horizontalScale){
         scale = horizontalScale;
+    }
+
+    public float getScale() {
+        return scale;
     }
 
     public void setAmplitude(float amplitude){

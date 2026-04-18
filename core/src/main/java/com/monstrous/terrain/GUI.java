@@ -14,6 +14,7 @@ public class GUI {
 
     public Stage stage;
     public Skin skin;
+    public TerrainDemo main;
     public Terrain terrain;
 
     public boolean showHeightmap = false;
@@ -29,10 +30,13 @@ public class GUI {
     private Label instancesLabel;
     private Label ampLabel;
     private float amplitude;
+    private Label scaleLabel;
+    private float scale;
 
 
-    public GUI ( Terrain terrain ) {
+    public GUI ( TerrainDemo main, Terrain terrain ) {
 
+        this.main = main;
         this.terrain = terrain;
 
         // GUI elements via Stage class
@@ -137,21 +141,44 @@ public class GUI {
 
 
         // amplitude
-        amplitude = terrain.terrainShader.getAmplitude();
+        amplitude = terrain.getAmplitude();
         final Slider ampSlider = new Slider(0f, 50000f, 100f, false, skin);
         ampSlider.setAnimateDuration(0.1f);
         ampSlider.setValue(amplitude);
         ampSlider.setSize(150, 20);
-        controls.add(ampSlider);
         controls.add(new Label("amplitude", skin));
+        controls.add(ampSlider);
+
         ampLabel = new Label(String.valueOf(amplitude), skin);
-        controls.add(ampLabel);
+        controls.add(ampLabel).row();
         ampSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 amplitude = ampSlider.getValue();
                 ampLabel.setText(String.valueOf((int)amplitude));
-                terrain.terrainShader.setAmplitude(amplitude);
+                terrain.setAmplitude(amplitude);
+                main.generateVegetation(terrain);
+
+            }
+        });
+
+        // scale
+        scale = terrain.terrainShader.getScale();
+        final Slider scaleSlider = new Slider(0f, 256f, 1f, false, skin);
+        scaleSlider.setAnimateDuration(0.1f);
+        scaleSlider.setValue(scale);
+        scaleSlider.setSize(150, 20);
+        controls.add(new Label("scale    ", skin));
+        controls.add(scaleSlider);
+
+        scaleLabel = new Label(String.valueOf(scale), skin);
+        controls.add(scaleLabel);
+        scaleSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                scale = scaleSlider.getValue();
+                scaleLabel.setText(String.valueOf(scale));
+                terrain.terrainShader.setScale(scale);
 
             }
         });

@@ -38,7 +38,7 @@ public class TerrainDemo extends ApplicationAdapter {
 	public void create() {
         terrain = new Terrain(255, 7, 32f);
 
-        gui = new GUI(terrain);
+        gui = new GUI(this, terrain);
 
 
         generateVegetation(terrain);
@@ -111,7 +111,7 @@ public class TerrainDemo extends ApplicationAdapter {
 		    renderPath();
 
         // enable this to demonstrate we can get accurate terrain height by placing blocks on the terrain
-        //renderVegetation();
+        renderVegetation();
 
 		if (gui.showHeightmap) {
 			batch.begin();
@@ -156,21 +156,22 @@ public class TerrainDemo extends ApplicationAdapter {
 		}
 	}
 
-    private void generateVegetation(Terrain terrain){
+    public void generateVegetation(Terrain terrain){
         ModelBuilder builder = new ModelBuilder();
         float SZ = 250f;
-        cube = builder.createBox(SZ, SZ, SZ, new Material(ColorAttribute.createDiffuse(Color.CYAN)),
+        cube = builder.createBox(SZ, SZ, SZ, new Material(ColorAttribute.createDiffuse(Color.RED)),
             VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
 
-        final int N = 100;
-        final float worldSize = 130000f;  // terrain.worldSize / 8.128 ??
+        final int N = 1000;
+        final float worldSize = terrain.heightMap.getSize() * terrain.terrainShader.getScale();
+        //130000f;  // terrain.worldSize / 8.128 ??
         vegetation = new Array<>();
 
         for(int i = 0; i < N; i++){
             float x = ((float)Math.random() -0.5f) * worldSize;
             float z = ((float)Math.random() -0.5f) * worldSize;
-            float h = 5f + terrain.getHeight(x, z);
-            vegetation.add( new ModelInstance(cube, x, h, z));
+            float h = 5f + terrain.getHeight(x*0.9f, z*0.9f);
+            vegetation.add( new ModelInstance(cube, x*0.9f, h, z*0.9f));
         }
 
     }

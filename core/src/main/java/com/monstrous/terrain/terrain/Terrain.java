@@ -34,6 +34,7 @@ public class Terrain implements Disposable {
     private final Vector3 focus;
     public boolean frustumCulling = true;
     public TerrainShader terrainShader;
+    private float amplitude;
 
     /** Construct terrain.
      *
@@ -47,6 +48,8 @@ public class Terrain implements Disposable {
         this.numLevels = numLevels;
         this.tileSize = tileSize;
         this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
+        this.amplitude = 25600;
+
         //heightMap = new HeightMapGenerated(2048); //clipMapSize+1);
         heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
@@ -62,7 +65,7 @@ public class Terrain implements Disposable {
         Renderable renderable = new Renderable();
         elements.get(0).modelInstance.getRenderable(renderable);
 
-        terrainShader = new TerrainShader(renderable, heightMap.getSize(), 2*tileSize, 20000f);
+        terrainShader = new TerrainShader(renderable, heightMap.getSize(), 2*tileSize, amplitude);
         terrainBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(final Renderable renderable) {
@@ -80,6 +83,16 @@ public class Terrain implements Disposable {
         if(u < 0 || u > 1f || v < 0 || v > 1f)
             return 25600;
         return 100f * (heightMap.get(u, v) - 128);
+    }
+
+    /** set terrain amplitude, i.e. height multiplication factor */
+    public void setAmplitude(float amplitude){
+        this.amplitude = amplitude;
+        terrainShader.setAmplitude(amplitude);
+    }
+
+    public float getAmplitude() {
+        return amplitude;
     }
 
     /** Generate terrain building block models. This can be called to change the appearance (e.g. wire frame mode).
@@ -131,10 +144,7 @@ public class Terrain implements Disposable {
     }
 
 
-    /** set terrain amplitude, i.e. height multiplication factor */
-    public void setAmplitude(float amplitude){
 
-    }
 
     private final Vector3 previousCameraPosition = new Vector3();
 
