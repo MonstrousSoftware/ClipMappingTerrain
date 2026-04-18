@@ -59,7 +59,8 @@ public class Terrain implements Disposable {
         terrainBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(final Renderable renderable) {
-                return new DefaultShader(renderable, new DefaultShader.Config(Gdx.files.internal("shaders/terrain.vertex.glsl").readString(), Gdx.files.internal("shaders/terrain.fragment.glsl").readString()));
+                return new TerrainShader(renderable);
+
             }
         });
     }
