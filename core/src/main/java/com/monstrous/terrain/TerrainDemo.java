@@ -112,7 +112,7 @@ public class TerrainDemo extends ApplicationAdapter {
 		    renderPath();
 
         // enable this to demonstrate we can get accurate terrain height by placing blocks on the terrain
-        renderVegetation();
+        //renderVegetation();
 
 		if (gui.showHeightmap) {
 			batch.begin();

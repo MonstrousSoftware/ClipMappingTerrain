@@ -19,6 +19,7 @@ public class Terrain implements Disposable {
     public int clipMapSize;   // should be 2^N-1, e.g. 63 or 127  = vertices per side
     public int numLevels;     // number of LOD levels
     public float tileSize;    // size of one grid tile in world units
+    private boolean wireFrameMode;
     public float worldSize;   // world size of terrain, centered on the origin
     public HeightMap heightMap;
     public final Array<TerrainElement> elements = new Array<>();
@@ -47,6 +48,7 @@ public class Terrain implements Disposable {
 
         this.scale = 64;    // hmm...
         this.amplitude = 25600;
+        this.wireFrameMode = false;
 
         //heightMap = new HeightMapGenerated(2048); //clipMapSize+1);
         heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
@@ -69,14 +71,20 @@ public class Terrain implements Disposable {
         });
     }
 
+    public void setWireFrameMode(boolean mode){
+        this.wireFrameMode = mode;
+    }
+
     public void setClipMapParameters(int clipMapSize, int numLevels, float tileSize) {
 
-        this.clipMapSize = clipMapSize;
         this.numLevels = numLevels;
         this.tileSize = tileSize;
+        if(clipMapSize != this.clipMapSize) {
+            this.clipMapSize = clipMapSize;
+            generateBlocks();
+        }
         this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
 
-        generateBlocks(GL20.GL_TRIANGLES);
         buildTerrain();
         Gdx.app.log("instances", ""+ elements.size);
     }
@@ -116,14 +124,14 @@ public class Terrain implements Disposable {
 
     /** Generate terrain building block models. This can be called to change the appearance (e.g. wire frame mode).
      *
-     * @param primitive GL_LINES or GL_TRIANGLES
      */
-    public void generateBlocks(int primitive){
+    public void generateBlocks(){
         instances.clear();
         disposeBlocks();
         GridModelBuilder gridBuilder = new GridModelBuilder();
         final int N = clipMapSize;
         final int M = (N+1)/4;
+        final int primitive = wireFrameMode ? GL20.GL_LINES : GL20.GL_TRIANGLES;
 
         Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/everest_2048_2048_albedo_topo.png"), true);
         diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);

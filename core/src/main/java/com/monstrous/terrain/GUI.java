@@ -32,7 +32,13 @@ public class GUI {
     private float amplitude;
     private Label scaleLabel;
     private float scale;
+    private int clipMapSizePower;
+    private int clipMapSize;
+    private Label clipMapSizeLabel;
     private int numLevels;
+    private float clipMapScale;
+    private Label levelsLabel;
+    private Label clipMapScaleLabel;
 
 
     public GUI ( TerrainDemo main, Terrain terrain ) {
@@ -43,6 +49,11 @@ public class GUI {
         // GUI elements via Stage class
         skin = new Skin(Gdx.files.internal("ui/uiskin.json"));
         stage = new Stage(new ScreenViewport());
+
+        clipMapSizePower = 8;
+        clipMapSize = 255;
+        numLevels = 7;
+        clipMapScale = 32f;
 
         addActors();
     }
@@ -91,7 +102,8 @@ public class GUI {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
                 showWireFrame = linesCheckbox.isChecked();
-                terrain.generateBlocks(showWireFrame ? GL20.GL_LINES : GL20.GL_TRIANGLES);
+                terrain.setWireFrameMode(showWireFrame);
+                terrain.generateBlocks();
             }
         });
         controls.add(linesCheckbox).left().row();
@@ -173,7 +185,7 @@ public class GUI {
         controls.add(scaleSlider);
 
         scaleLabel = new Label(String.valueOf(scale), skin);
-        controls.add(scaleLabel);
+        controls.add(scaleLabel).row();
         scaleSlider.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
@@ -184,6 +196,68 @@ public class GUI {
 
             }
         });
+
+        // clipMapSize
+
+        final Slider cmSizeSlider = new Slider(3, 10, 1, false, skin);
+        cmSizeSlider.setAnimateDuration(0.1f);
+        cmSizeSlider.setValue(clipMapSizePower);
+        cmSizeSlider.setSize(150, 20);
+        controls.add(new Label("clip map size    ", skin));
+        controls.add(cmSizeSlider);
+
+        clipMapSize = Math.round((float)Math.pow(2.0, clipMapSizePower) - 1f);
+        clipMapSizeLabel = new Label(String.valueOf(clipMapSize), skin);
+        controls.add(clipMapSizeLabel).row();
+        cmSizeSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                clipMapSizePower = (int)cmSizeSlider.getValue();
+                clipMapSize = Math.round((float)Math.pow(2.0, clipMapSizePower) - 1f);
+                clipMapSizeLabel.setText(String.valueOf(clipMapSize));
+                terrain.setClipMapParameters(clipMapSize, numLevels, clipMapScale);
+            }
+        });
+
+        // numLevels
+
+        final Slider levelsSlider = new Slider(1, 10, 1, false, skin);
+        levelsSlider.setAnimateDuration(0.1f);
+        levelsSlider.setValue(numLevels);
+        levelsSlider.setSize(150, 20);
+        controls.add(new Label("numLevels    ", skin));
+        controls.add(levelsSlider);
+
+        levelsLabel = new Label(String.valueOf(numLevels), skin);
+        controls.add(levelsLabel).row();
+        levelsSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                numLevels = (int)levelsSlider.getValue();
+                levelsLabel.setText(String.valueOf(numLevels));
+                terrain.setClipMapParameters(clipMapSize, numLevels, clipMapScale);
+            }
+        });
+
+
+        final Slider cmScaleSlider = new Slider(1f, 500f, 1f, false, skin);
+        cmScaleSlider.setAnimateDuration(0.1f);
+        cmScaleSlider.setValue(clipMapScale);
+        cmScaleSlider.setSize(150, 20);
+        controls.add(new Label("clip map scale    ", skin));
+        controls.add(cmScaleSlider);
+
+        clipMapScaleLabel = new Label(String.valueOf(clipMapScale), skin);
+        controls.add(clipMapScaleLabel).row();
+        cmScaleSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                clipMapScale = cmScaleSlider.getValue();
+                clipMapScaleLabel.setText(String.valueOf(clipMapScale));
+                terrain.setClipMapParameters(clipMapSize, numLevels, clipMapScale);
+            }
+        });
+
 
 
 
