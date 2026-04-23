@@ -48,7 +48,7 @@ public class TerrainDemo extends ApplicationAdapter {
 		cam.position.set(0, 20000, 0);
 		cam.lookAt(0, 0, 0);
         // far distance is world distance of diagonal over height map
-		cam.far = (float)Math.sqrt(2f)*terrain.heightMap.getSize() * terrain.getScale();
+		cam.far =  terrain.heightMap.getSize() * terrain.getScale();
 		cam.near = 10f;
 		cam.update();
 

@@ -10,10 +10,6 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
-
-// todo Terrain and the terrain shaders share some magic constants, e.g. world size. Should be uniforms.
-// also means the Terrain constructor parameters are not fully honoured.
-
 public class Terrain implements Disposable {
     private final ModelBatch terrainBatch;
     public int clipMapSize;   // should be 2^N-1, e.g. 63 or 127  = vertices per side
