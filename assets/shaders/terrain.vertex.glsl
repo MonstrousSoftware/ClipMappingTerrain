@@ -18,7 +18,7 @@ varying float v_fog;
 void main() {
 	vec4 worldPos = u_worldTrans * a_position;
 
-    float terrainWorldSize = u_heightMapSize * u_scale;
+    float terrainWorldSize = float(u_heightMapSize) * u_scale;
 
     // offset by 0.5 because terrain is centred on origin
     v_UV = (worldPos.xz / terrainWorldSize) + vec2(0.5);
